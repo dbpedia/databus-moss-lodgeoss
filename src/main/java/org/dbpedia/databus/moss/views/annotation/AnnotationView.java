@@ -37,9 +37,9 @@ public class AnnotationView extends Div {
         databusIdTF.setValue("https://databus.dbpedia.org/jj-author/mastr/bnetza-mastr/01.04.01/bnetza-mastr_rli_type=wind.nt.gz");
         add(databusIdTF);
 
-        ArrayList<String> annotationUrls = new ArrayList<String>();
-        ListDataProvider<String> annotationProvider = new ListDataProvider<String>(annotationUrls);
-        Grid<String> annotationGrid = new Grid(String.class);
+        ArrayList<AnnotationURL> annotationUrls = new ArrayList<AnnotationURL>();
+        ListDataProvider<AnnotationURL> annotationProvider = new ListDataProvider<AnnotationURL>(annotationUrls);
+        Grid<AnnotationURL> annotationGrid = new Grid(AnnotationURL.class);
 
         annotationGrid.setWidth("50%");
         annotationGrid.setDataProvider(annotationProvider);
@@ -58,7 +58,7 @@ public class AnnotationView extends Div {
         inputBTN.addClickListener(new ComponentEventListener<ClickEvent<Button>>() {
             @Override
             public void onComponentEvent(ClickEvent<Button> buttonClickEvent) {
-                annotationUrls.add("");
+                annotationUrls.add(new AnnotationURL(inputTF.getValue()));
                 annotationProvider.refreshAll();
                 inputTF.setValue("");
             }
