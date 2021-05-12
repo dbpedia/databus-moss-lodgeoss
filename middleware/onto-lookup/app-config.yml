@@ -16,14 +16,13 @@ indexConfig:
       resourceName: term
       query: >
         SELECT DISTINCT ?term ?definition WHERE {
-          ?term <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Class> ;
-            <http://purl.obolibrary.org/obo/IAO_0000115> ?definition .
+          ?term <http://purl.obolibrary.org/obo/IAO_0000115> ?definition .
         }
     - fieldName: type
       resourceName: term
       query: >
-        SELECT DISTINCT ?term ?comment WHERE {
-          ?term ?class <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?type .
+        SELECT DISTINCT ?term ?type WHERE {
+          ?term <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?type .
         }
     - fieldName: comment
       resourceName: term
