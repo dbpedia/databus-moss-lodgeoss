@@ -7,17 +7,31 @@ indexConfig:
   commitInterval: 100000
   indexFields:
     - fieldName: label
-      resourceName: group
+      resourceName: term
       query: >
-        SELECT DISTINCT ?group ?label  WHERE {
-          ?group <http://www.w3.org/2000/01/rdf-schema#label> ?label .
+        SELECT DISTINCT ?term ?label  WHERE {
+          ?term <http://www.w3.org/2000/01/rdf-schema#label> ?label .
+        }
+    - fieldName: definition
+      resourceName: term
+      query: >
+        SELECT DISTINCT ?term ?definition WHERE {
+          ?term <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Class> ;
+            <http://purl.obolibrary.org/obo/IAO_0000115> ?definition .
+        }
+    - fieldName: type
+      resourceName: term
+      query: >
+        SELECT DISTINCT ?term ?comment WHERE {
+          ?term ?class <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?type .
         }
     - fieldName: comment
-      resourceName: group
+      resourceName: term
       query: >
-        SELECT DISTINCT ?group ?comment WHERE {
-          ?group <http://www.w3.org/2000/01/rdf-schema#comment> ?comment.
+        SELECT DISTINCT ?term ?comment WHERE {
+          ?term <http://www.w3.org/2000/01/rdf-schema#comment> ?comment .
         }
+
 queryConfig:
   exactMatchBoost: 5
   prefixMatchBoost: 2
@@ -28,7 +42,11 @@ queryConfig:
   format: JSON
   queryFields:
     - fieldName: label
-      weight: 2.0
+      weight: 4.0
+      highlight: true
+      queryByDefault: true
+    - fieldName: definition
+      weight: 1.0
       highlight: true
       queryByDefault: true
     - fieldName: comment
