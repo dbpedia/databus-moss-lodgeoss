@@ -2,27 +2,38 @@ package org.dbpedia.databus.moss.views.search;
 
 public class SearchResult {
 
-    public String iri;
-    public int triples;
+    public String versionUri;
+    public String downloadUrl;
+    public String databusFileUri;
 
-    public SearchResult(String iri, int triples) {
-        this.iri = iri;
-        this.triples = triples;
+
+    public SearchResult(String versionUri, String downloadUrl, String databusFileUri) {
+        this.versionUri = versionUri;
+        this.downloadUrl = downloadUrl;
+        this.databusFileUri = databusFileUri;
     }
 
-    public String getIri() {
-        return iri;
+    public String getDatabusFileUri() {
+        return databusFileUri;
     }
 
-    public void setIri(String iri) {
-        this.iri = iri;
+    public String getDownloadUrl() {
+        return downloadUrl;
     }
 
-    public int getTriples() {
-        return triples;
+    public String getVersionUri() {
+        return versionUri;
     }
 
-    public void setTriples(int triples) {
-        this.triples = triples;
+    public void setDatabusFileUri(String databusFileUri) {
+        this.databusFileUri = databusFileUri;
+    }
+
+    public void setVersionUri(String versionUri) {
+        this.versionUri = versionUri;
+    }
+
+    public void setDownloadUrl(String downloadUrl) {
+        this.downloadUrl = downloadUrl;
     }
 }
