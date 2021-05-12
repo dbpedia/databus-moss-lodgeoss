@@ -2,6 +2,7 @@ package org.dbpedia.databus.moss.views.annotation;
 
 import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.ComponentEventListener;
+import com.vaadin.flow.component.HtmlComponent;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.H1;
@@ -35,6 +36,7 @@ public class AnnotationView extends Div {
         databusIdTF.setWidth("50%");
         databusIdTF.setPlaceholder("https://databus.dbpedia.org/jj-author/mastr/bnetza-mastr/01.04.01/bnetza-mastr_rli_type=wind.nt.gz");
         databusIdTF.setValue("https://databus.dbpedia.org/jj-author/mastr/bnetza-mastr/01.04.01/bnetza-mastr_rli_type=wind.nt.gz");
+        add(new HtmlComponent("br"));
         add(databusIdTF);
 
         ArrayList<AnnotationURL> annotationUrls = new ArrayList<AnnotationURL>();
