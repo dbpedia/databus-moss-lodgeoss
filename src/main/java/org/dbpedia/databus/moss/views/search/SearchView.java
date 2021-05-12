@@ -76,7 +76,7 @@ public class SearchView extends Div {
             }
         });
 
-        /*Button search_annotations_button = new Button("Search Annotations");
+        Button search_annotations_button = new Button("Search Annotations");
         search_annotations_button.setIcon(new Icon(VaadinIcon.SEARCH));
         search_annotations_button.addThemeVariants(ButtonVariant.LUMO_CONTRAST);
         search_annotations_button.addClickListener(buttonClickEvent -> {
@@ -91,10 +91,10 @@ public class SearchView extends Div {
                 }
                 result_grid.getDataProvider().refreshAll();
             }
-        });*/
+        });
 
-        //HorizontalLayout buttons_horizontal = new HorizontalLayout(search_void_button, search_annotations_button);
-        HorizontalLayout buttons_horizontal = new HorizontalLayout(search_void_button);
+        HorizontalLayout buttons_horizontal = new HorizontalLayout(search_void_button, search_annotations_button);
+        //HorizontalLayout buttons_horizontal = new HorizontalLayout(search_void_button);
 
         VerticalLayout vl = new VerticalLayout(search_field, buttons_horizontal, result_grid);
 
@@ -163,12 +163,31 @@ public class SearchView extends Div {
     }
 
     private String buildAnnotationQuery(String iri) {
-        return "SELECT ?file ?annotation {\n"+
+        return "PREFIX foaf: <http://xmlns.com/foaf/0.1/>\n"+
+                "PREFIX void: <http://rdfs.org/ns/void#>\n"+
+                "PREFIX dataid: <http://dataid.dbpedia.org/ns/core#>\n"+
+                "PREFIX dct:    <http://purl.org/dc/terms/>\n"+
+                "PREFIX dcat:   <http://www.w3.org/ns/dcat#>\n"+
+                "PREFIX db:     <https://databus.dbpedia.org/>\n"+
+                "PREFIX rdf:    <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n"+
+                "PREFIX rdfs:   <http://www.w3.org/2000/01/rdf-schema#>\n"+
+                "PREFIX mods:   <http://mods.tools.dbpedia.org/>\n"+
+                "\n"+
+                "\n"+
+                "SELECT ?versionURI ?file ?downloadURL ?annotation {\n"+
                 "  ?s a <http://mods.tools.dbpedia.org/ns/demo/DemoMod> .\n"+
                 "  ?s <http://www.w3.org/ns/prov#used> ?file .\n"+
                 "  ?s <http://www.w3.org/ns/prov#generated> ?g .\n"+
                 "  ?g <http://purl.org/dc/elements/1.1/subject> ?annotation .\n"+
-                "  FILTER (?annotation LIKE <" + iri + "%>)\n"+
+                String.format("  FILTER regex(str(?annotation), '%s')\n", iri)+
+                "    \n"+
+                "  SERVICE <http://databus.dbpedia.org/repo/sparql> {\n"+
+                "     ?dataset dataid:group ?group .\n"+
+                "     ?dataset dcat:distribution ?distribution .\n"+
+                "     ?dataset dataid:version ?versionURI .\n"+
+                "     ?distribution dataid:file ?file .\n"+
+                "     ?distribution dcat:downloadURL ?downloadURL .\n"+
+                " }\n"+
                 "}";
     }
 
