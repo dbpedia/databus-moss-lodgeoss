@@ -1,7 +1,7 @@
 version: "1.0"
 indexConfig:
   indexPath: /root/lucene-index
-  indexMode: BUILD_DISK
+  indexMode: BUILD_MEM
   cleanIndex: true
   cacheSize: 100000
   commitInterval: 100000
@@ -30,7 +30,12 @@ indexConfig:
         SELECT DISTINCT ?term ?comment WHERE {
           ?term <http://www.w3.org/2000/01/rdf-schema#comment> ?comment .
         }
-
+    - fieldName: altLabel
+      resourceName: term
+      query: >
+        SELECT DISTINCT ?term ?altLabel WHERE {
+          ?term <http://purl.obolibrary.org/obo/IAO_0000118> ?altLabel .
+        }
 queryConfig:
   exactMatchBoost: 5
   prefixMatchBoost: 2
@@ -41,7 +46,11 @@ queryConfig:
   format: JSON
   queryFields:
     - fieldName: label
-      weight: 4.0
+      weight: 8.0
+      highlight: true
+      queryByDefault: true
+    - fieldName: altLabel
+      weight: 6.0
       highlight: true
       queryByDefault: true
     - fieldName: definition
@@ -49,6 +58,12 @@ queryConfig:
       highlight: true
       queryByDefault: true
     - fieldName: comment
-      weight: 0.2
+      weight: 0.8
       highlight: true
       queryByDefault: true
+    - fieldName: type
+      weight: 20
+      highlight: false
+      queryByDefault: false
+      exact: true
+      tokenize: false
