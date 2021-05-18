@@ -60,6 +60,44 @@ public class SearchView extends Div {
 
             search_grid.getDataProvider().refreshAll();
         });
+
+        search_grid.addColumn(new ComponentRenderer<>(frontend_data -> {
+            Button b = new Button("Search Content");
+            b.setIcon(new Icon(VaadinIcon.SEARCH));
+            b.addThemeVariants(ButtonVariant.LUMO_CONTRAST);
+            b.addClickListener(buttonClickEvent -> {
+                String query_string = frontend_data.getResource();
+                if (!query_string.isBlank()) {
+                    result_list.clear();
+                    String sparql_query = buildVoidQuery(query_string);
+                    List<SearchResult> search_results = sendSPARQL(sparql_query, databus_sparql_endpoint);
+
+                    for (SearchResult sr : search_results) {
+                        result_list.add(sr);
+                    }
+                    result_grid.getDataProvider().refreshAll();
+                }
+            });
+            return b;
+        })).setHeader("Search Void");
+
+        search_grid.addColumn(new ComponentRenderer<>(frontend_data -> {
+            Button b = new Button("Search Annotations");
+            b.setIcon(new Icon(VaadinIcon.SEARCH));
+            b.addThemeVariants(ButtonVariant.LUMO_CONTRAST);
+            b.addClickListener(buttonClickEvent -> {
+                String query_string = frontend_data.getResource();
+                if (!query_string.isBlank()) {
+                    result_list.clear();
+                    String sparql_query = buildAnnotationQuery(query_string);
+                    List<SearchResult> search_results = sendSPARQL(sparql_query, mods_endpoint);
+
+                    result_list.addAll(search_results);
+                    result_grid.getDataProvider().refreshAll();
+                }
+            });
+            return b;
+        })).setHeader("Search Annotations");
 //        search_field.addValueChangeListener(event -> {
 //            updateResultArea();
 //        });
@@ -138,6 +176,7 @@ public class SearchView extends Div {
 
     private List<SearchResult> sendSPARQL(String query, String endpoint) {
         Query q = QueryFactory.create(query);
+        System.out.println(q);
         QueryExecution qexec = QueryExecutionFactory.sparqlService(endpoint, q);
 
         ResultSet rs = qexec.execSelect();
