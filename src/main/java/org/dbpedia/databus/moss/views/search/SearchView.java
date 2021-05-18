@@ -1,8 +1,6 @@
 package org.dbpedia.databus.moss.views.search;
 
-import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.dependency.CssImport;
-import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
@@ -39,9 +37,7 @@ public class SearchView extends Div {
 
     private final String mods_endpoint = "https://mods.tools.dbpedia.org/sparql";
 
-    VerticalLayout searchResultArea = new VerticalLayout();
-
-    private List<SearchResult> result_list = new ArrayList<>();
+    private final List<SearchResult> result_list = new ArrayList<>();
 
     public SearchView() {
 
@@ -72,9 +68,7 @@ public class SearchView extends Div {
                     String sparql_query = buildVoidQuery(query_string);
                     List<SearchResult> search_results = sendSPARQL(sparql_query, databus_sparql_endpoint);
 
-                    for (SearchResult sr : search_results) {
-                        result_list.add(sr);
-                    }
+                    result_list.addAll(search_results);
                     result_grid.getDataProvider().refreshAll();
                 }
             });
@@ -107,10 +101,6 @@ public class SearchView extends Div {
         search_field.setClearButtonVisible(true);
 
 
-        //Setting up the result layout
-        List<SearchResult> result_list = new ArrayList<>();
-
-
 
         result_grid.setItems(result_list);
 
@@ -129,9 +119,7 @@ public class SearchView extends Div {
                 String sparql_query = buildVoidQuery(query_string);
                 List<SearchResult> search_results = sendSPARQL(sparql_query, databus_sparql_endpoint);
 
-                for (SearchResult sr : search_results) {
-                    result_list.add(sr);
-                }
+                result_list.addAll(search_results);
                 result_grid.getDataProvider().refreshAll();
             }
         });
@@ -146,9 +134,7 @@ public class SearchView extends Div {
                 String sparql_query = buildAnnotationQuery(query_string);
                 List<SearchResult> search_results = sendSPARQL(sparql_query, mods_endpoint);
 
-                for (SearchResult sr : search_results) {
-                    result_list.add(sr);
-                }
+                result_list.addAll(search_results);
                 result_grid.getDataProvider().refreshAll();
             }
         });
@@ -158,20 +144,6 @@ public class SearchView extends Div {
 
         VerticalLayout vl = new VerticalLayout(search_field, buttons_horizontal, search_grid, result_grid);
         add(vl);
-    }
-
-    private void search(String query) {
-        if (this.getUI().isPresent()) {
-            UI ui = this.getUI().get();
-            result_list.clear();
-            String sparql_query = buildVoidQuery(query);
-            List<SearchResult> search_results = sendSPARQL(sparql_query, mods_endpoint);
-
-            for (SearchResult sr : search_results) {
-                result_list.add(sr);
-            }
-            result_grid.getDataProvider().refreshAll();
-        }
     }
 
     private List<SearchResult> sendSPARQL(String query, String endpoint) {
@@ -286,20 +258,6 @@ public class SearchView extends Div {
                 "     ?distribution dcat:downloadURL ?downloadURL .\n"+
                 " }\n"+
                 "}";
-    }
-
-
-    private void updateResultArea() {
-        searchResultArea.removeAll();
-
-        for (LookupFrontendData c : this.suggestions) {
-            Div d = new Div();
-            d.add(new H1(c.getLabel()));
-            d.add(new Anchor(c.getResource()));
-            d.addClassName("resultBox");
-            searchResultArea.add(d);
-        }
-
     }
 
 }
