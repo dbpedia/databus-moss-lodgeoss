@@ -176,7 +176,6 @@ public class SearchView extends Div {
 
     private List<SearchResult> sendSPARQL(String query, String endpoint) {
         Query q = QueryFactory.create(query);
-        System.out.println(q);
         QueryExecution qexec = QueryExecutionFactory.sparqlService(endpoint, q);
 
         ResultSet rs = qexec.execSelect();
