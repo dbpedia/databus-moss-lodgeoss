@@ -76,9 +76,9 @@ public class SearchView extends Div {
 
         result_grid.setItems(result_list);
 
-        result_grid.addColumn(new ComponentRenderer<>(searchResult -> {
-            return new Anchor(searchResult.downloadUrl, searchResult.downloadUrl);
-        })).setHeader("Gender");
+//        result_grid.addColumn(new ComponentRenderer<>(searchResult -> {
+//            return new Anchor(searchResult.downloadUrl, searchResult.downloadUrl);
+//        })).setHeader("Gender");
 
         // Setting up the search button
         Button search_void_button = new Button("Search Content");
