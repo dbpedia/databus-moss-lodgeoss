@@ -7,22 +7,23 @@ import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.html.Label;
+import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.provider.ListDataProvider;
+import com.vaadin.flow.router.*;
 import org.dbpedia.databus.moss.views.main.MainView;
-import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.html.Div;
-import com.vaadin.flow.router.PageTitle;
-import com.vaadin.flow.router.Route;
 
-import java.util.ArrayList;
+import java.util.*;
 
-@Route(value = "annotation", layout = MainView.class)
+@Route(value = "annotate", layout = MainView.class)
 @PageTitle("Annotation")
 @CssImport("./views/about/about-view.css")
-public class AnnotationView extends Div {
+public class AnnotationView extends Div implements BeforeEnterObserver {
+
+    TextField databusIdTF;
 
     public AnnotationView() {
         addClassName("about-view");
@@ -32,10 +33,8 @@ public class AnnotationView extends Div {
 
         //Databus file id text field
         add(new com.vaadin.flow.component.html.Label("databus file identifier"));
-        TextField databusIdTF = new TextField();
+        databusIdTF = new TextField();
         databusIdTF.setWidth("50%");
-        databusIdTF.setPlaceholder("https://databus.dbpedia.org/jj-author/mastr/bnetza-mastr/01.04.01/bnetza-mastr_rli_type=wind.nt.gz");
-        databusIdTF.setValue("https://databus.dbpedia.org/jj-author/mastr/bnetza-mastr/01.04.01/bnetza-mastr_rli_type=wind.nt.gz");
         add(new HtmlComponent("br"));
         add(databusIdTF);
 
@@ -55,7 +54,6 @@ public class AnnotationView extends Div {
         inputTF.setValue("http://www.w3.org/2002/07/owl#Thing");
         inputTF.setWidth("100%");
 
-
         Button inputBTN = new Button("+");
         inputBTN.addClickListener(new ComponentEventListener<ClickEvent<Button>>() {
             @Override
@@ -65,20 +63,27 @@ public class AnnotationView extends Div {
                 inputTF.setValue("");
             }
         });
-//        inputBTN.addClickListener(new ComponentEventListener<ClickEvent<Button>> {
-//            override def onComponentEvent(event: ClickEvent[Button]): Unit = {
-//                    annotationUrls.add(new AnnotationURL(new URL(inputTF.getValue)))
-//                    annotationProvider.refreshAll()
-//                    inputTF.setValue("")
-//            }
-//        };)
         HorizontalLayout inputGroup = new HorizontalLayout(inputTF,inputBTN);
         inputGroup.setWidth("50%");
         add(inputGroup);
 
         Button submitBTN = new Button("submit");
-        // TODO
+
+        submitBTN.addClickListener(
+                (ComponentEventListener<ClickEvent<Button>>) buttonClickEvent -> {
+                    new Notification("test",3000).open();
+                });
         add(submitBTN);
     }
 
+    @Override
+    public void beforeEnter(BeforeEnterEvent beforeEnterEvent) {
+        Location location = beforeEnterEvent.getLocation();
+        QueryParameters queryParameters = location.getQueryParameters();
+        Map<String, List<String>> parametersMap = queryParameters.getParameters();
+        List<String> defaultDatabusFiles = Collections.singletonList("https://databus.dbpedia.org/jj-author/mastr/bnetza-mastr/01.04.01/bnetza-mastr_rli_type=wind.nt.gz");
+        String defaultDatabusFile = parametersMap.getOrDefault("dfid",defaultDatabusFiles).get(0);
+        databusIdTF.setPlaceholder(defaultDatabusFile);
+        databusIdTF.setValue(defaultDatabusFile);
+    }
 }

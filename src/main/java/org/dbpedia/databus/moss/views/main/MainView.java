@@ -3,6 +3,7 @@ package org.dbpedia.databus.moss.views.main;
 import java.util.Optional;
 
 import org.dbpedia.databus.moss.views.annotation.AnnotationView;
+import org.dbpedia.databus.moss.views.metadata.MetadataView;
 import org.dbpedia.databus.moss.views.search.SearchView;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.ComponentUtil;
@@ -84,7 +85,8 @@ public class MainView extends AppLayout {
     private Component[] createMenuItems() {
         return new Tab[]{
                 createTab("Search", SearchView.class),
-                createTab("Annotation", AnnotationView.class)
+                createTab("Annotate", AnnotationView.class),
+                createTab("Metadata", MetadataView.class)
         };
     }
 
