@@ -18,11 +18,11 @@ public class ModActivityMetadata {
 
     public ModActivityMetadata(String databusId) {
 
-      addStmtToModel("mod.ttl","http://www.w3.org/ns/prov#used", ResourceFactory.createResource(databusId));
+      addStmtToModel("activity.ttl","http://www.w3.org/ns/prov#used", ResourceFactory.createResource(databusId));
 
-      addStmtToModel("mod.ttl","http://www.w3.org/ns/prov#startedAtTime",new XSDDateTime(Calendar.getInstance()));
-      addStmtToModel("mod.ttl","http://www.w3.org/ns/prov#endedAtTime",new XSDDateTime(Calendar.getInstance()));
-      addStmtToModel("mod.ttl","http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+      addStmtToModel("activity.ttl","http://www.w3.org/ns/prov#startedAtTime",new XSDDateTime(Calendar.getInstance()));
+      addStmtToModel("activity.ttl","http://www.w3.org/ns/prov#endedAtTime",new XSDDateTime(Calendar.getInstance()));
+      addStmtToModel("activity.ttl","http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
               ResourceFactory.createResource("http://mods.tools.dbpedia.org/ns/demo#AnnotationMod"));
     }
 
@@ -35,11 +35,11 @@ public class ModActivityMetadata {
     }
 
     void addModResult(String name, String link) {
-        addStmtToModel("mod.ttl","http://www.w3.org/ns/prov#generated",ResourceFactory.createResource(name));
+        addStmtToModel("activity.ttl","http://www.w3.org/ns/prov#generated",ResourceFactory.createResource(name));
         model.add(
                 ResourceFactory.createResource(name),
                 ResourceFactory.createProperty(link),
-                ResourceFactory.createResource("mod.ttl")
+                ResourceFactory.createResource("activity.ttl")
         );
     }
 }

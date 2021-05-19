@@ -2,7 +2,7 @@ package org.dbpedia.databus.moss.annotation;
 
 public class SVGBuilder {
 
-    static String svgString2dec = "<?xml version=\"1.0\"?>\n" +
+    public static String svgString2dec = "<?xml version=\"1.0\"?>\n" +
             "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" width=\"42\" height=\"20\" role=\"img\" aria-label=\"&#x270E;: #NO\">\n" +
             "  <title>&#x270E;: #NO</title>\n" +
             "  <linearGradient id=\"s\" x2=\"0\" y2=\"100%\">\n" +
