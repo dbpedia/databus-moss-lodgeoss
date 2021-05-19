@@ -163,7 +163,7 @@ public class SearchView extends Div {
 
             result_list.add(row);
         }
-
+        qexec.close();
         return result_list;
     }
 
