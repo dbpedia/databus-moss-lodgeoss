@@ -28,10 +28,7 @@ import org.dbpedia.databus.moss.views.search.LookupRequester;
 import org.dbpedia.databus.utils.DatabusFileUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Route(value = "annotate", layout = MainView.class)
 @PageTitle("Annotation")
@@ -46,6 +43,8 @@ public class AnnotationView extends Div implements BeforeEnterObserver {
 
     List<LookupFrontendData> suggestions = new ArrayList<>();
     Grid<LookupFrontendData> suggestion_grid = new Grid<>();
+
+    Div versionDiv = new Div();
 
     MetadataService ms;
 
@@ -144,10 +143,12 @@ public class AnnotationView extends Div implements BeforeEnterObserver {
                 (ComponentEventListener<ClickEvent<Button>>) buttonClickEvent -> {
                     if (DatabusFileUtil.validate(databusIdTF.getValue())
                     && ! annotationUrls.isEmpty()) {
-                        ms.createAnnotation(databusIdTF.getValue(),annotationUrls);
-                        Notification.show("submitted",2000, Notification.Position.MIDDLE);
+                        ms.createAnnotation(databusIdTF.getValue(), annotationUrls);
+                        updateVersionLink(databusIdTF.getValue());
+                        Notification.show("submitted", 2000, Notification.Position.MIDDLE);
                     } else {
-                        Notification.show("invalid input",2000, Notification.Position.MIDDLE);
+                        updateVersionLink(null);
+                        Notification.show("invalid input", 2000, Notification.Position.MIDDLE);
                     }
                 });
 
@@ -159,6 +160,7 @@ public class AnnotationView extends Div implements BeforeEnterObserver {
                     annotationUrls.clear();
                     annotationUrls.addAll(list);
                     annotationProvider.refreshAll();
+                    updateVersionLink(null);
                 });
 
         HorizontalLayout buttonGroup = new HorizontalLayout(submitBTN, refreshBTN);
@@ -169,14 +171,29 @@ public class AnnotationView extends Div implements BeforeEnterObserver {
         HorizontalLayout inputs = new HorizontalLayout(databusIdTF, search_field);
         inputs.setWidth("100%");
 
+
         VerticalLayout vl = new VerticalLayout(
                 new com.vaadin.flow.component.html.Label("Paste Databus file identifier of the file you like to annotate"),
                 inputs,
                 grids,
-                buttonGroup
+                buttonGroup,
+                versionDiv
         );
 
         add(vl);
+    }
+
+    void updateVersionLink(String df) {
+        if (null != df) {
+            versionDiv.removeAll();
+            versionDiv.add(new Label("See on Databus Website "));
+            String[] dfParts = df.split("/");
+            String[] veParts = Arrays.copyOf(dfParts, dfParts.length - 1);
+            String versionURI = String.join("/", veParts);
+            versionDiv.add(new Anchor(versionURI, versionURI));
+        } else {
+            versionDiv.removeAll();
+        }
     }
 
     @Override
