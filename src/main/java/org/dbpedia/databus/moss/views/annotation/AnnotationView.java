@@ -124,7 +124,7 @@ public class AnnotationView extends Div implements BeforeEnterObserver {
         HorizontalLayout buttonGroup = new HorizontalLayout(submitBTN,refreshBTN);
 
         VerticalLayout vl = new VerticalLayout(
-                new com.vaadin.flow.component.html.Label("databus file identifier"),
+                new com.vaadin.flow.component.html.Label("Paste Databus file identifier of the file you like to annotate"),
                 databusIdTF,
                 annotationGrid,
                 inputLabel,

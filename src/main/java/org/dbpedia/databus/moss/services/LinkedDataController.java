@@ -38,6 +38,7 @@ public class LinkedDataController {
         if(null != file) {
             try {
                 response.setStatus(200);
+                response.setContentType("text/plain");
                 OutputStream os = response.getOutputStream();
                 FileInputStream is = new FileInputStream(file);
                 IOUtils.copy(is,os);

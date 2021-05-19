@@ -68,9 +68,7 @@ public class MetadataService {
                 ResourceFactory.createResource("annotation.svg"),
                 ResourceFactory.createProperty("http://www.w3.org/2000/01/rdf-schema#seeAlso"),
                 ResourceFactory.createResource("https://moss.tools.dbpedia.org/annotate?dfid=" +
-                        URLEncoder.encode(
-                                "https://databus.dbpedia.org/vehnem/paper-supplements/demo-graph/20210301/demo-graph.png",
-                                StandardCharsets.UTF_8)));
+                        URLEncoder.encode(df, StandardCharsets.UTF_8)));
 
         Model annotationModel = ModelFactory.createDefaultModel();
         for(AnnotationURL annotationURL: annotationURLS) {
@@ -137,6 +135,7 @@ public class MetadataService {
         File resultFile = new File(baseDir, databusIdPath + "/" + result);
         if (resultFile.exists()) {
             String fqBaseURI = baseURI.replaceAll("/$","") + "/" + databusIdPath + "/";
+            log.info("read "+fqBaseURI);
             Model model = ModelFactory.createDefaultModel();
             model.read(new FileInputStream(resultFile),fqBaseURI,"TURTLE");
             return model;
