@@ -1,0 +1,69 @@
+version: "1.0"
+indexConfig:
+  indexPath: /root/lucene-index
+  indexMode: BUILD_MEM
+  cleanIndex: true
+  cacheSize: 100000
+  commitInterval: 100000
+  indexFields:
+    - fieldName: label
+      resourceName: term
+      query: >
+        SELECT DISTINCT ?term ?label  WHERE {
+          ?term <http://www.w3.org/2000/01/rdf-schema#label> ?label .
+        }
+    - fieldName: definition
+      resourceName: term
+      query: >
+        SELECT DISTINCT ?term ?definition WHERE {
+          ?term <http://purl.obolibrary.org/obo/IAO_0000115> ?definition .
+        }
+    - fieldName: type
+      resourceName: term
+      query: >
+        SELECT DISTINCT ?term ?type WHERE {
+          ?term <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?type .
+        }
+    - fieldName: comment
+      resourceName: term
+      query: >
+        SELECT DISTINCT ?term ?comment WHERE {
+          ?term <http://www.w3.org/2000/01/rdf-schema#comment> ?comment .
+        }
+    - fieldName: altLabel
+      resourceName: term
+      query: >
+        SELECT DISTINCT ?term ?altLabel WHERE {
+          ?term <http://purl.obolibrary.org/obo/IAO_0000118> ?altLabel .
+        }
+queryConfig:
+  exactMatchBoost: 5
+  prefixMatchBoost: 2
+  fuzzyMatchBoost: 1
+  fuzzyEditDistance: 2
+  fuzzyPrefixLength: 2
+  maxResults: 100
+  format: JSON
+  queryFields:
+    - fieldName: label
+      weight: 8.0
+      highlight: true
+      queryByDefault: true
+    - fieldName: altLabel
+      weight: 6.0
+      highlight: true
+      queryByDefault: true
+    - fieldName: definition
+      weight: 1.0
+      highlight: true
+      queryByDefault: true
+    - fieldName: comment
+      weight: 0.8
+      highlight: true
+      queryByDefault: true
+    - fieldName: type
+      weight: 20
+      highlight: false
+      queryByDefault: false
+      exact: true
+      tokenize: false
