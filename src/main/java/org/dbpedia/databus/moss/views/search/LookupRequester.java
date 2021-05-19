@@ -16,7 +16,7 @@ import java.util.Map;
 
 public final class LookupRequester {
 
-    private static final String lookup_endpoint = "http://tools.dbpedia.org:9273/lookup-application/api/search?query=%s";
+    private static final String lookup_endpoint = "http://tools.dbpedia.org:9274/lookup-application/api/search?query=%s";
 
     public static List<LookupObject> getResult(String query) throws Exception {
 
