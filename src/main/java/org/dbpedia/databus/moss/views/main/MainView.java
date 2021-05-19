@@ -53,7 +53,7 @@ public class MainView extends AppLayout {
         layout.add(new DrawerToggle());
         viewTitle = new H1();
         layout.add(viewTitle);
-        layout.add(new Avatar());
+//        layout.add(new Avatar());
         return layout;
     }
 
