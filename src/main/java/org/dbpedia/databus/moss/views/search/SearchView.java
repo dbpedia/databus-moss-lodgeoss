@@ -1,11 +1,8 @@
 package org.dbpedia.databus.moss.views.search;
 
 import com.vaadin.flow.component.Html;
-import com.vaadin.flow.component.html.Span;
-import com.vaadin.flow.component.checkbox.Checkbox;
+import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.radiobutton.RadioButtonGroup;
-import com.vaadin.flow.component.checkbox.CheckboxGroup;
-import com.vaadin.flow.component.checkbox.CheckboxGroupVariant;
 import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H1;
@@ -39,7 +36,7 @@ public class SearchView extends Div {
     private final List<LookupFrontendData> suggestions = new ArrayList<>();
     private final List<LookupFrontendData> selected_objects = new ArrayList<>();
     private final Grid<LookupFrontendData> selected_grid = new Grid<>();
-    private final Grid<LookupFrontendData> search_grid = new Grid<>();
+    private final Grid<LookupFrontendData> suggestion_grid = new Grid<>();
 
     private final Grid<SearchResult> result_grid = new Grid<>();
 
@@ -79,8 +76,8 @@ public class SearchView extends Div {
 
 
 
-        search_grid.setItems(suggestions);
-        search_grid.setWidth("40%");
+        suggestion_grid.setItems(suggestions);
+        suggestion_grid.setWidth("40%");
 
         selected_grid.setItems(selected_objects);
         selected_grid.setWidth("40%");
@@ -91,10 +88,10 @@ public class SearchView extends Div {
 
             updateSuggestions(event.getValue());
 
-            search_grid.getDataProvider().refreshAll();
+            suggestion_grid.getDataProvider().refreshAll();
         });
 
-        search_grid.addColumn(new ComponentRenderer<>(frontend_data -> {
+        suggestion_grid.addColumn(new ComponentRenderer<>(frontend_data -> {
             HorizontalLayout cell = new HorizontalLayout();
             Html cellText = new Html(
                     "<span>" +
@@ -103,7 +100,8 @@ public class SearchView extends Div {
                             "<a href=\""+frontend_data.getResource() + "\">"+ frontend_data.getResource() + "</a>" +
                             "<br>" +
                             frontend_data.getDefinition() + "</span>");
-            Button add_button = new Button("+");
+            Button add_button = new Button();
+            add_button.setIcon(VaadinIcon.PENCIL.create());
             add_button.addClickListener(event -> {
                 selected_objects.add(frontend_data);
                 selected_grid.getDataProvider().refreshAll();
@@ -198,9 +196,10 @@ public class SearchView extends Div {
 
         HorizontalLayout buttons = new HorizontalLayout(search_button, clear_selected_button);
 
-        HorizontalLayout search_select_hl = new HorizontalLayout(search_grid, selected_grid);
+        HorizontalLayout search_select_hl = new HorizontalLayout(suggestion_grid, selected_grid);
+        search_select_hl.setWidth("100%");
 
-        VerticalLayout vl = new VerticalLayout(search_field, search_grid, selected_grid, buttons, result_grid);
+        VerticalLayout vl = new VerticalLayout(search_field, search_select_hl, buttons, result_grid);
         add(vl);
     }
 
