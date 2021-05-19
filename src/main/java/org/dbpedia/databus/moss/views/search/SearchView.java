@@ -122,7 +122,8 @@ public class SearchView extends Div {
                             "<a href=\""+frontend_data.getResource() + "\">"+ frontend_data.getResource() + "</a>" +
                             "<br>" +
                             frontend_data.getDefinition() + "</span>");
-            Button remove_button = new Button("-");
+            Button remove_button = new Button();
+            remove_button.setIcon(VaadinIcon.TRASH.create());
             remove_button.addClickListener(event -> {
                 selected_objects.remove(frontend_data);
                 selected_grid.getDataProvider().refreshAll();
