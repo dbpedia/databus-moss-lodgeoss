@@ -3,22 +3,20 @@ package org.dbpedia.databus.moss.views.search;
 public class SearchResult {
 
     public String versionUri;
-    public String downloadUrl;
     public String databusFileUri;
+    public String title;
+    public String comment;
 
 
-    public SearchResult(String versionUri, String downloadUrl, String databusFileUri) {
+    public SearchResult(String versionUri, String title, String databusFileUri, String comment) {
         this.versionUri = versionUri;
-        this.downloadUrl = downloadUrl;
+        this.title = title;
         this.databusFileUri = databusFileUri;
+        this.comment = comment;
     }
 
     public String getDatabusFileUri() {
         return databusFileUri;
-    }
-
-    public String getDownloadUrl() {
-        return downloadUrl;
     }
 
     public String getVersionUri() {
@@ -33,7 +31,19 @@ public class SearchResult {
         this.versionUri = versionUri;
     }
 
-    public void setDownloadUrl(String downloadUrl) {
-        this.downloadUrl = downloadUrl;
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public String getComment() {
+        return comment;
+    }
+
+    public void setComment(String comment) {
+        this.comment = comment;
     }
 }
