@@ -21,10 +21,15 @@ import com.vaadin.flow.router.Route;
 import com.vaadin.flow.router.RouteAlias;
 import org.apache.jena.query.*;
 import org.dbpedia.databus.moss.views.main.MainView;
+import org.dbpedia.databus.utils.LookupFrontendData;
+import org.dbpedia.databus.utils.LookupObject;
+import org.dbpedia.databus.utils.LookupRequester;
+import org.dbpedia.databus.utils.MossUtilityFunctions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 @Route(value = "search", layout = MainView.class)
@@ -52,6 +57,7 @@ public class SearchView extends Div {
 
         addClassName("search-view");
         add(new H1("Databus Metadata Overlay Search System"));
+        //TODO
 //        RadioButtonGroup<String> type_radio_group = new RadioButtonGroup<>();
 //        type_radio_group.setLabel("Select type");
 //        type_radio_group.setItems("owl:Class", "owl:ObjectProperty", "any");
@@ -89,13 +95,6 @@ public class SearchView extends Div {
 
         suggestion_grid.addColumn(new ComponentRenderer<>(frontend_data -> {
             HorizontalLayout cell = new HorizontalLayout();
-            Html cellText = new Html(
-                    "<span>" +
-                            "<u>" + frontend_data.getLabel() + "</u>" +
-                            "<br>" +
-                            "<a href=\""+frontend_data.getResource() + "\">"+ frontend_data.getResource() + "</a>" +
-                            "<br>" +
-                            frontend_data.getDefinition() + "</span>");
             Button add_button = new Button();
             add_button.setIcon(VaadinIcon.PLUS_CIRCLE.create());
             add_button.addClickListener(event -> {
@@ -103,19 +102,12 @@ public class SearchView extends Div {
                 selected_grid.getDataProvider().refreshAll();
             });
             cell.add(add_button);
-            cell.add(cellText);
+            cell.add(frontend_data.generate_html_repr());
             return cell;
         })).setHeader("Suggestions");
 
         selected_grid.addColumn(new ComponentRenderer<>(frontend_data -> {
             HorizontalLayout cell = new HorizontalLayout();
-            Html cellText = new Html(
-                    "<span>" +
-                            "<u>" + frontend_data.getLabel() + "</u>" +
-                            "<br>" +
-                            "<a href=\""+frontend_data.getResource() + "\">"+ frontend_data.getResource() + "</a>" +
-                            "<br>" +
-                            frontend_data.getDefinition() + "</span>");
             Button remove_button = new Button();
             remove_button.setIcon(VaadinIcon.TRASH.create());
             remove_button.addClickListener(event -> {
@@ -123,7 +115,7 @@ public class SearchView extends Div {
                 selected_grid.getDataProvider().refreshAll();
             });
             cell.add(remove_button);
-            cell.add(cellText);
+            cell.add(frontend_data.generate_html_repr());
             return cell;
         })).setHeader("Selected Search Terms");
 
@@ -232,29 +224,19 @@ public class SearchView extends Div {
         try {
             search_result = LookupRequester.getResult(query);
         } catch (Exception e) {
-            System.out.println("Exception:" + e);
+            log.error("Exception:" + e);
             search_result = new ArrayList<>();
         }
 
 
         for (LookupObject lo : search_result) {
             try {
-                String label;
-                String definition;
-                if (lo.getLabel() == null) {
-                    label = "";
-                } else {
-                    label = lo.getLabel()[0];
-                }
-
-                if (lo.getDefinition() == null) {
-                    definition = "";
-                } else {
-                    definition = lo.getDefinition()[0];
-                }
-                suggestions.add(new LookupFrontendData(lo.getResource()[0], label, definition));
+                String label = MossUtilityFunctions.getValFromArray(lo.getLabel());
+                String definition = MossUtilityFunctions.getValFromArray(lo.getDefinition());
+                String comment = MossUtilityFunctions.getValFromArray(lo.getComment());
+                suggestions.add(new LookupFrontendData(lo.getResource()[0], label, definition, comment));
             } catch (Exception e) {
-                System.out.println("Exception:" + e);
+                log.error("Exception:" + e);
             }
         }
     }

@@ -2,7 +2,6 @@ package org.dbpedia.databus.moss.views.annotation;
 
 import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.ComponentEventListener;
-import com.vaadin.flow.component.Html;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.grid.Grid;
@@ -22,10 +21,7 @@ import com.vaadin.flow.data.value.ValueChangeMode;
 import com.vaadin.flow.router.*;
 import org.dbpedia.databus.moss.services.MetadataService;
 import org.dbpedia.databus.moss.views.main.MainView;
-import org.dbpedia.databus.moss.views.search.LookupFrontendData;
-import org.dbpedia.databus.moss.views.search.LookupObject;
-import org.dbpedia.databus.moss.views.search.LookupRequester;
-import org.dbpedia.databus.utils.DatabusFileUtil;
+import org.dbpedia.databus.utils.*;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.*;
@@ -99,13 +95,6 @@ public class AnnotationView extends Div implements BeforeEnterObserver {
 
         suggestion_grid.addColumn(new ComponentRenderer<>(frontend_data -> {
             HorizontalLayout cell = new HorizontalLayout();
-            Html cellText = new Html(
-                    "<span>" +
-                            "<u>" + frontend_data.getLabel() + "</u>" +
-                            "<br>" +
-                            "<a href=\"" + frontend_data.getResource() + "\">" + frontend_data.getResource() + "</a>" +
-                            "<br>" +
-                            frontend_data.getDefinition() + "</span>");
             Button add_button = new Button();
             add_button.setIcon(VaadinIcon.PENCIL.create());
             add_button.addClickListener(event -> {
@@ -113,7 +102,7 @@ public class AnnotationView extends Div implements BeforeEnterObserver {
                 annotationGrid.getDataProvider().refreshAll();
             });
             cell.add(add_button);
-            cell.add(cellText);
+            cell.add(frontend_data.generate_html_repr());
             return cell;
         })).setHeader("Suggestions");
 
@@ -225,20 +214,10 @@ public class AnnotationView extends Div implements BeforeEnterObserver {
 
         for (LookupObject lo : search_result) {
             try {
-                String label;
-                String definition;
-                if (lo.getLabel() == null) {
-                    label = "";
-                } else {
-                    label = lo.getLabel()[0];
-                }
-
-                if (lo.getDefinition() == null) {
-                    definition = "";
-                } else {
-                    definition = lo.getDefinition()[0];
-                }
-                suggestions.add(new LookupFrontendData(lo.getResource()[0], label, definition));
+                String label = MossUtilityFunctions.getValFromArray(lo.getLabel());
+                String definition = MossUtilityFunctions.getValFromArray(lo.getDefinition());
+                String comment = MossUtilityFunctions.getValFromArray(lo.getComment());
+                suggestions.add(new LookupFrontendData(lo.getResource()[0], label, definition, comment));
             } catch (Exception e) {
                 System.out.println("Exception:" + e);
             }

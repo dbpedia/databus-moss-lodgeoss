@@ -1,4 +1,6 @@
-package org.dbpedia.databus.moss.views.search;
+package org.dbpedia.databus.utils;
+
+import com.vaadin.flow.component.Html;
 
 public class LookupObject {
     private String[] score;
@@ -7,6 +9,7 @@ public class LookupObject {
     private String[] definition;
     private String[] altLabel;
     private String[] type;
+    private String[] comment;
 
     public LookupObject() {};
 
@@ -56,5 +59,13 @@ public class LookupObject {
 
     public void setScore(String[] score) {
         this.score = score;
+    }
+
+    public void setComment(String[] comment) {
+        this.comment = comment;
+    }
+
+    public String[] getComment() {
+        return comment;
     }
 }

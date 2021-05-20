@@ -1,4 +1,4 @@
-package org.dbpedia.databus.moss.views.search;
+package org.dbpedia.databus.utils;
 
 import java.net.http.*;
 import java.net.URLEncoder;
@@ -7,12 +7,8 @@ import java.net.URI;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.dbpedia.databus.utils.LookupObject;
 
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.Reader;
 import java.util.List;
 import java.util.Map;
 
