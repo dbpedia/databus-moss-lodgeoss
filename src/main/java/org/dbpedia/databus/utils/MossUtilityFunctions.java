@@ -1,5 +1,8 @@
 package org.dbpedia.databus.utils;
 
+import java.net.HttpURLConnection;
+import java.net.URL;
+
 public final class MossUtilityFunctions {
 
 
@@ -8,6 +11,26 @@ public final class MossUtilityFunctions {
             return "";
         } else {
             return str_array[0];
+        }
+    }
+
+    public static int checkIfValidDatabusId (String databusIri) {
+        String fileRegex = "^https://databus\\.dbpedia\\.org/[^\\/]+/[^/]+/[^/]+/[^/]+/[^/]+$";
+        if (!databusIri.matches(fileRegex))
+            return 0;
+        URL url = null;
+        try {
+            url = new URL(databusIri);
+            HttpURLConnection con = (HttpURLConnection) url.openConnection();
+            con.setRequestMethod("HEAD");
+            int status = con.getResponseCode();
+            if (status >= 300 && status < 400)
+                return 1;
+            else
+                return 0;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return -1;
         }
     }
 }
