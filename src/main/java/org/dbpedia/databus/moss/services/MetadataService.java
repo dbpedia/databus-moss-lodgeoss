@@ -155,7 +155,7 @@ public class MetadataService {
     }
 
 
-    public void push_model(String df, Model push_model) throws IOException {
+    public void submit_model(String df, Model push_model) throws IOException {
 
         ModActivityMetadata mam = new ModActivityMetadata(df, "http://mods.tools.dbpedia.org/ns/demo#SubmissionMod");
         mam.addModResult("submitted-data.ttl", "http://dataid.dbpedia.org/ns/mods/core#wasDerivedFrom");

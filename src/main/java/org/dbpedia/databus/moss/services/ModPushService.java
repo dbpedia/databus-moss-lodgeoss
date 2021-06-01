@@ -54,7 +54,7 @@ public class ModPushService {
             return new ResponseEntity<>("Failed: " + databus_file_iri + " is no valid Databus ID" , HttpStatus.BAD_REQUEST);
         }
         try {
-            ms.push_model(databus_file_iri, model);
+            ms.submit_model(databus_file_iri, model);
         } catch (IOException ioex) {
             log.warn("Exception during pushing data: ", ioex);
             return new ResponseEntity<>("Failed: " + ioex, HttpStatus.INTERNAL_SERVER_ERROR);

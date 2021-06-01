@@ -74,10 +74,7 @@ public class DataSubmissionView extends Div {
         databusIdTF.setValueChangeMode(ValueChangeMode.LAZY);
         databusIdTF.setValue("https://databus.dbpedia.org/jj-author/mastr/bnetza-mastr/01.04.01/bnetza-mastr_rli_type=wind.nt.gz");
 
-
-
-
-
+        // submit data
         Button submitBTN = new Button("submit");
 
         submitBTN.addClickListener(
@@ -91,7 +88,7 @@ public class DataSubmissionView extends Div {
                         return;
                     }
                     try {
-                        ms.push_model(databusIdTF.getValue(), model);
+                        ms.submit_model(databusIdTF.getValue(), model);
                     } catch (IOException ioex) {
                         log.warn("Exception during submission: ", ioex);
                         Notification.show("Error during submission", 2000, Notification.Position.MIDDLE);
