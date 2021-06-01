@@ -24,7 +24,7 @@ public final class MossUtilityFunctions {
             HttpURLConnection con = (HttpURLConnection) url.openConnection();
             con.setRequestMethod("HEAD");
             int status = con.getResponseCode();
-            if (status >= 300 && status < 400)
+            if (status >= 200 && status < 400)
                 return 1;
             else
                 return 0;

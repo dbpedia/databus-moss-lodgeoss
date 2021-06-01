@@ -1,25 +1,19 @@
 package org.dbpedia.databus.moss.services;
 
 
-import org.apache.commons.io.IOUtils;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
+import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFLanguages;
 import org.apache.jena.riot.RDFParser;
-import org.dbpedia.databus.moss.views.search.SearchView;
 import org.dbpedia.databus.utils.DatabusFileUtil;
-import org.dbpedia.databus.utils.MossUtilityFunctions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.io.InputStream;
 
 @RestController
 @RequestMapping(value = "/pushmod")
@@ -32,8 +26,9 @@ public class ModPushService {
         this.ms = ms;
     }
 
-    @PutMapping(value = "/{publisher}/{group}/{artifact}/{version}/{fileName}", consumes = {MediaType.APPLICATION_JSON_VALUE})
+    @PutMapping(value = "/{publisher}/{group}/{artifact}/{version}/{fileName}")
     ResponseEntity<String> put_jsonld_annotation(
+            @RequestHeader(value = "content-type") String content_type,
             @PathVariable String publisher,
             @PathVariable String group,
             @PathVariable String artifact,
@@ -43,9 +38,10 @@ public class ModPushService {
     ) {
 
         // Check if the submitted file actually parses
-        Model model = ModelFactory.createDefaultModel();;
+        Lang rdf_lang = RDFLanguages.contentTypeToLang(content_type);
+        Model model = ModelFactory.createDefaultModel();
         try {
-            RDFParser.create().fromString(jsonld_string).lang(RDFLanguages.JSONLD).parse(model);
+            RDFParser.create().fromString(jsonld_string).lang(rdf_lang).parse(model);
         } catch (Exception e) {
             log.warn("Exception during parsing: ", e);
             return new ResponseEntity<>("Failed: " + e, HttpStatus.BAD_REQUEST);

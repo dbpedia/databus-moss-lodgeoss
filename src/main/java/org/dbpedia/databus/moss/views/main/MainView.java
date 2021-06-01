@@ -16,6 +16,7 @@ import com.vaadin.flow.component.tabs.TabsVariant;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.RouterLink;
 import com.vaadin.flow.server.PWA;
+import org.dbpedia.databus.moss.views.DataSubmission.DataSubmissionView;
 import org.dbpedia.databus.moss.views.annotation.AnnotationView;
 import org.dbpedia.databus.moss.views.search.SearchView;
 
@@ -82,7 +83,8 @@ public class MainView extends AppLayout {
     private Component[] createMenuItems() {
         return new Tab[]{
                 createTab("Search", SearchView.class),
-                createTab("Annotate", AnnotationView.class)
+                createTab("Annotate", AnnotationView.class),
+                createTab("Submit Metadata", DataSubmissionView.class)
 //                createTab("Metadata", MetadataView.class)
         };
     }
