@@ -59,7 +59,7 @@ public class MetadataService {
 
     public void createAnnotation(String df, List<AnnotationURL> annotationURLS) {
 
-        ModActivityMetadata mam = new ModActivityMetadata(df);
+        ModActivityMetadata mam = new ModActivityMetadata(df, "http://mods.tools.dbpedia.org/ns/demo#AnnotationMod");
         mam.addModResult("annotation.ttl", "http://dataid.dbpedia.org/ns/mods/core#wasDerivedFrom");
         //svg
         mam.addModResult("annotation.svg", "http://dataid.dbpedia.org/ns/mods/core#svgDerivedFrom");
@@ -152,5 +152,40 @@ public class MetadataService {
         } else {
             return null;
         }
+    }
+
+
+    public void push_model(String df, Model push_model) throws IOException {
+
+        ModActivityMetadata mam = new ModActivityMetadata(df, "http://mods.tools.dbpedia.org/ns/demo#SubmissionMod");
+        mam.addModResult("submitted-data.ttl", "http://dataid.dbpedia.org/ns/mods/core#wasDerivedFrom");
+        //svg
+        //mam.addModResult("annotation.svg", "http://dataid.dbpedia.org/ns/mods/core#svgDerivedFrom");
+        Model activityModel = mam.getModel();
+//        activityModel.add(
+//                ResourceFactory.createResource("annotation.svg"),
+//                ResourceFactory.createProperty("http://www.w3.org/2000/01/rdf-schema#seeAlso"),
+//                ResourceFactory.createResource("https://moss.tools.dbpedia.org/annotate?dfid=" +
+//                        URLEncoder.encode(df, StandardCharsets.UTF_8)));
+
+        String databusFilePath = df.replace("https://databus.dbpedia.org/","");
+
+        saveModel(activityModel,databusFilePath,"activity.ttl");
+        saveModel(push_model,databusFilePath,"submitted-data.ttl");
+
+//        updateModel(df+"#submitted-data",  getModel(baseURI,databusFilePath,"activity.ttl"), true);
+//        updateModel(df+"#submitted-data", getModel(baseURI,databusFilePath,"submitted-data.ttl"), false);
+        log.info("loaded " + df+"#submitted-data");
+
+
+//        File annotationSVGFile = new File(baseDir, databusFilePath + "/" + "annotation.svg");
+//        try {
+//            FileOutputStream fos = new FileOutputStream(annotationSVGFile);
+//            IOUtils.write(SVGBuilder.svgString2dec.replace("#NO", String.valueOf(annotationURLS.size())),fos,StandardCharsets.UTF_8);
+//            fos.close();
+//        } catch (IOException ioe) {
+//            ioe.printStackTrace();
+//        }
+
     }
 }

@@ -16,14 +16,14 @@ public class ModActivityMetadata {
         return model;
     }
 
-    public ModActivityMetadata(String databusId) {
+    public ModActivityMetadata(String databusId, String mod_type) {
 
       addStmtToModel("activity.ttl","http://www.w3.org/ns/prov#used", ResourceFactory.createResource(databusId));
 
       addStmtToModel("activity.ttl","http://www.w3.org/ns/prov#startedAtTime",new XSDDateTime(Calendar.getInstance()));
       addStmtToModel("activity.ttl","http://www.w3.org/ns/prov#endedAtTime",new XSDDateTime(Calendar.getInstance()));
       addStmtToModel("activity.ttl","http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
-              ResourceFactory.createResource("http://mods.tools.dbpedia.org/ns/demo#AnnotationMod"));
+              ResourceFactory.createResource(mod_type));
     }
 
     private void addStmtToModel(String s, String p, Object o) {
