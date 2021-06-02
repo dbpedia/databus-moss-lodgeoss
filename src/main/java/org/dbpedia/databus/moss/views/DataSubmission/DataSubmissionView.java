@@ -46,7 +46,7 @@ public class DataSubmissionView extends Div {
         // rdf type selection
 
         rdf_type_selection.setLabel("Data Format");
-        rdf_type_selection.setItems("JSON-LD", "Turtle", "RDFXML", "Ntriples");
+        rdf_type_selection.setItems("JSON-LD", "JSON", "Turtle", "RDFXML", "Ntriples");
         rdf_type_selection.setValue("JSON-LD");
         rdf_type_selection.addValueChangeListener(event -> update_data_area());
 
@@ -78,23 +78,7 @@ public class DataSubmissionView extends Div {
         Button submitBTN = new Button("submit");
 
         submitBTN.addClickListener(
-                (ComponentEventListener<ClickEvent<Button>>) buttonClickEvent -> {
-                    Model model = ModelFactory.createDefaultModel();
-                    try {
-                        RDFParser.create().fromString(data_area.getValue()).lang(RDFLanguages.JSONLD).parse(model);
-                    } catch (Exception e) {
-                        log.warn("Exception during parsing: ", e);
-                        Notification.show("invalid input", 2000, Notification.Position.MIDDLE);
-                        return;
-                    }
-                    try {
-                        ms.submit_model(databusIdTF.getValue(), model);
-                    } catch (IOException ioex) {
-                        log.warn("Exception during submission: ", ioex);
-                        Notification.show("Error during submission", 2000, Notification.Position.MIDDLE);
-                    }
-                    Notification.show("Successfully Submitted Data", 2000, Notification.Position.MIDDLE);
-                });
+                (ComponentEventListener<ClickEvent<Button>>) buttonClickEvent -> handle_submission());
 
         VerticalLayout submit_selection = new VerticalLayout(rdf_type_selection, submitBTN);
 
@@ -105,6 +89,7 @@ public class DataSubmissionView extends Div {
     private Lang get_rdf_lang_from_string(String rdf_lang_string) {
 
         switch (rdf_lang_string) {
+            case "JSON":
             case "JSON-LD":
                 return RDFLanguages.JSONLD;
             case "Ntriples":
@@ -114,7 +99,7 @@ public class DataSubmissionView extends Div {
             case "RDFXML":
                 return RDFLanguages.RDFXML;
             default:
-                return RDFLanguages.JSONLD;
+                return RDFLanguages.NTRIPLES;
 
         }
     }
@@ -128,5 +113,37 @@ public class DataSubmissionView extends Div {
         } catch (Exception e) {
             data_area.setInvalid(true);
         }
+    }
+
+    private void handle_submission() {
+        String rdf_string;
+        Lang rdf_lang;
+
+        String rdf_type_id = rdf_type_selection.getValue();
+
+        // catch json input and convert it
+        if (rdf_type_id.equals("JSON")) {
+            rdf_string = MossUtilityFunctions.get_ntriples_from_json(data_area.getValue());
+            rdf_lang = RDFLanguages.NTRIPLES;
+        } else {
+            rdf_string = data_area.getValue();
+            rdf_lang = get_rdf_lang_from_string(rdf_type_selection.getValue());
+        }
+
+        Model model = ModelFactory.createDefaultModel();
+        try {
+            RDFParser.create().fromString(rdf_string).lang(rdf_lang).parse(model);
+        } catch (Exception e) {
+            log.warn("Exception during parsing: ", e);
+            Notification.show("invalid input or wrong serialisation type", 2000, Notification.Position.MIDDLE);
+            return;
+        }
+        try {
+            ms.submit_model(databusIdTF.getValue(), model);
+        } catch (IOException ioex) {
+            log.warn("Exception during submission: ", ioex);
+            Notification.show("Error during submission", 2000, Notification.Position.MIDDLE);
+        }
+        Notification.show("Successfully Submitted Data", 2000, Notification.Position.MIDDLE);
     }
 }
