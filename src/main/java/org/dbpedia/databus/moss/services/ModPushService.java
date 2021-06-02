@@ -7,6 +7,7 @@ import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFLanguages;
 import org.apache.jena.riot.RDFParser;
 import org.dbpedia.databus.utils.DatabusFileUtil;
+import org.dbpedia.databus.utils.MossUtilityFunctions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,7 +17,7 @@ import org.springframework.web.bind.annotation.*;
 import java.io.IOException;
 
 @RestController
-@RequestMapping(value = "/pushmod")
+@RequestMapping(value = "/annotation-api-demo")
 public class ModPushService {
 
     private final Logger log = LoggerFactory.getLogger(ModPushService.class);
@@ -34,14 +35,23 @@ public class ModPushService {
             @PathVariable String artifact,
             @PathVariable String version,
             @PathVariable String fileName,
-            @RequestBody String jsonld_string
+            @RequestBody String rdf_string
     ) {
 
+        Lang rdf_lang;
+
+        // catch json input and convert it
+        // set language to ntriples since this is returned by json2rdf
+        if (content_type.equals("application/json")) {
+            rdf_string = MossUtilityFunctions.get_ntriples_from_json(rdf_string);
+            rdf_lang = RDFLanguages.NTRIPLES;
+        } else {
+            rdf_lang = RDFLanguages.contentTypeToLang(content_type);
+        }
         // Check if the submitted file actually parses
-        Lang rdf_lang = RDFLanguages.contentTypeToLang(content_type);
         Model model = ModelFactory.createDefaultModel();
         try {
-            RDFParser.create().fromString(jsonld_string).lang(rdf_lang).parse(model);
+            RDFParser.create().fromString(rdf_string).lang(rdf_lang).parse(model);
         } catch (Exception e) {
             log.warn("Exception during parsing: ", e);
             return new ResponseEntity<>("Failed: " + e, HttpStatus.BAD_REQUEST);

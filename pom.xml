@@ -43,6 +43,11 @@
             <name>AKSW Snapshot Repository</name>
             <url>http://maven.aksw.org/archiva/repository/internal</url>
         </repository>
+
+        <repository>
+            <id>jitpack.io</id>
+            <url>https://jitpack.io</url>
+        </repository>
     </repositories>
 
     <pluginRepositories>
@@ -176,6 +181,11 @@
             <artifactId>webdrivermanager</artifactId>
             <version>3.8.1</version>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.github.AtomGraph</groupId>
+            <artifactId>JSON2RDF</artifactId>
+            <version>1.0.1</version>
         </dependency>
     </dependencies>
 
