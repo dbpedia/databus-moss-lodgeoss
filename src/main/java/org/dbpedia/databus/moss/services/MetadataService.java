@@ -157,8 +157,10 @@ public class MetadataService {
 
     public void submit_model(String df, Model push_model) throws IOException {
 
-        ModActivityMetadata mam = new ModActivityMetadata(df, "http://mods.tools.dbpedia.org/ns/demo#SubmissionMod");
-        mam.addModResult("submitted-data.ttl", "http://dataid.dbpedia.org/ns/mods/core#wasDerivedFrom");
+        String graph_identifier = "#api-demo";
+
+        ModActivityMetadata mam = new ModActivityMetadata(df, "http://mods.tools.dbpedia.org/ns/demo#ApiDemoMod");
+        mam.addModResult("api-demo-data.ttl", "http://dataid.dbpedia.org/ns/mods/core#wasDerivedFrom");
         //svg
         //mam.addModResult("annotation.svg", "http://dataid.dbpedia.org/ns/mods/core#svgDerivedFrom");
         Model activityModel = mam.getModel();
@@ -170,12 +172,12 @@ public class MetadataService {
 
         String databusFilePath = df.replace("https://databus.dbpedia.org/","");
 
-        saveModel(activityModel,databusFilePath,"activity.ttl");
-        saveModel(push_model,databusFilePath,"submitted-data.ttl");
+        saveModel(activityModel,databusFilePath,"api-demo-activity.ttl");
+        saveModel(push_model,databusFilePath,"api-demo-data.ttl");
 
-//        updateModel(df+"#submitted-data",  getModel(baseURI,databusFilePath,"activity.ttl"), true);
-//        updateModel(df+"#submitted-data", getModel(baseURI,databusFilePath,"submitted-data.ttl"), false);
-        log.info("loaded " + df+"#submitted-data");
+        updateModel(df+graph_identifier,  getModel(baseURI,databusFilePath,"api-demo-activity.ttl"), true);
+        updateModel(df+graph_identifier, getModel(baseURI,databusFilePath,"api-demo-data.ttl"), false);
+        log.info("loaded " + df+graph_identifier);
 
 
 //        File annotationSVGFile = new File(baseDir, databusFilePath + "/" + "annotation.svg");

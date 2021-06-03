@@ -18,12 +18,12 @@ import java.io.IOException;
 
 @RestController
 @RequestMapping(value = "/annotation-api-demo")
-public class ModPushService {
+public class AnnotationAPIDemoController {
 
-    private final Logger log = LoggerFactory.getLogger(ModPushService.class);
+    private final Logger log = LoggerFactory.getLogger(AnnotationAPIDemoController.class);
     private final MetadataService ms;
 
-    public ModPushService(@Autowired MetadataService ms) {
+    public AnnotationAPIDemoController(@Autowired MetadataService ms) {
         this.ms = ms;
     }
 
