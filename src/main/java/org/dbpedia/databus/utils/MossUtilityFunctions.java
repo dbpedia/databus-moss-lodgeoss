@@ -14,7 +14,7 @@ import org.apache.jena.riot.system.StreamRDFLib;
 public final class MossUtilityFunctions {
 
     // this is intentionally without any # or / ending since json2rdf always appends # to the base uri
-    public static final String json_rdf_base_uri = "http://moss.tools.dbpedia.org/demo/ns";
+    public static final String json_rdf_base_uri = "http://moss.tools.dbpedia.org/ns/demo";
 
     public static String getValFromArray(String[] str_array) {
         if (str_array == null) {
