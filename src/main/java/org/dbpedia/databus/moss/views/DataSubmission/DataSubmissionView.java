@@ -12,14 +12,14 @@ import com.vaadin.flow.component.radiobutton.RadioButtonGroup;
 import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.value.ValueChangeMode;
-import com.vaadin.flow.router.PageTitle;
-import com.vaadin.flow.router.Route;
+import com.vaadin.flow.router.*;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFLanguages;
 import org.apache.jena.riot.RDFParser;
 import org.dbpedia.databus.moss.services.MetadataService;
+import org.dbpedia.databus.moss.views.annotation.AnnotationURL;
 import org.dbpedia.databus.moss.views.main.MainView;
 import org.dbpedia.databus.utils.MossUtilityFunctions;
 import org.slf4j.Logger;
@@ -27,11 +27,14 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.IOException;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 @Route(value = "submit-data", layout = MainView.class)
 @PageTitle("Metadata Submission")
 @CssImport("./views/about/about-view.css")
-public class DataSubmissionView extends Div {
+public class DataSubmissionView extends Div implements BeforeEnterObserver {
 
     private final Logger log = LoggerFactory.getLogger(DataSubmissionView.class);
     TextField databusIdTF;
@@ -145,5 +148,20 @@ public class DataSubmissionView extends Div {
             Notification.show("Error during submission", 2000, Notification.Position.MIDDLE);
         }
         Notification.show("Successfully Submitted Data", 2000, Notification.Position.MIDDLE);
+    }
+
+    @Override
+    public void beforeEnter(BeforeEnterEvent beforeEnterEvent) {
+        Location location = beforeEnterEvent.getLocation();
+        QueryParameters queryParameters = location.getQueryParameters();
+        Map<String, List<String>> parametersMap = queryParameters.getParameters();
+        List<String> defaultDatabusFiles = Collections.singletonList("https://databus.dbpedia.org/jj-author/mastr/bnetza-mastr/01.04.01/bnetza-mastr_rli_type=wind.nt.gz");
+        String databusFile = parametersMap.getOrDefault("dfid", defaultDatabusFiles).get(0);
+        databusIdTF.setPlaceholder(databusFile);
+        databusIdTF.setValue(databusFile);
+
+        String turtle_string = ms.get_api_data(databusFile);
+        data_area.setValue(turtle_string);
+        rdf_type_selection.setValue("Turtle");
     }
 }
