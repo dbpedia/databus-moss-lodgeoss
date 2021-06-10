@@ -6,7 +6,9 @@ import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H1;
+import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.radiobutton.RadioButtonGroup;
 import com.vaadin.flow.component.textfield.TextArea;
@@ -41,10 +43,14 @@ public class DataSubmissionView extends Div implements BeforeEnterObserver {
     MetadataService ms;
     TextArea data_area = new TextArea();
     RadioButtonGroup<String> rdf_type_selection = new RadioButtonGroup<>();
+    Button refreshBTN = new Button();
 
     public DataSubmissionView (@Autowired MetadataService ms) {
         this.ms = ms;
         addClassName("submit-data-view");
+
+        refreshBTN.setIcon(VaadinIcon.REFRESH.create());
+        refreshBTN.addClickListener(event -> refresh_content());
 
         // rdf type selection
 
@@ -83,9 +89,11 @@ public class DataSubmissionView extends Div implements BeforeEnterObserver {
         submitBTN.addClickListener(
                 (ComponentEventListener<ClickEvent<Button>>) buttonClickEvent -> handle_submission());
 
-        VerticalLayout submit_selection = new VerticalLayout(rdf_type_selection, submitBTN);
 
-        VerticalLayout vl = new VerticalLayout(databusIdTF, data_area, submit_selection);
+        HorizontalLayout search_layout = new HorizontalLayout(databusIdTF, refreshBTN);
+        VerticalLayout submit_selection = new VerticalLayout(rdf_type_selection, submitBTN);
+        search_layout.setWidth("100%");
+        VerticalLayout vl = new VerticalLayout(search_layout, data_area, submit_selection);
         add(vl);
     }
 
@@ -161,6 +169,12 @@ public class DataSubmissionView extends Div implements BeforeEnterObserver {
         databusIdTF.setValue(databusFile);
 
         String turtle_string = ms.get_api_data(databusFile);
+        data_area.setValue(turtle_string);
+        rdf_type_selection.setValue("Turtle");
+    }
+
+    private void refresh_content() {
+        String turtle_string = ms.get_api_data(databusIdTF.getValue());
         data_area.setValue(turtle_string);
         rdf_type_selection.setValue("Turtle");
     }
