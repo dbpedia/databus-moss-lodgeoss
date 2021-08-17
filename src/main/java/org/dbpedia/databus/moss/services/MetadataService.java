@@ -180,7 +180,7 @@ public class MetadataService {
         saveModel(push_model,databusFilePath,"api-demo-data.ttl");
 
         updateModel(df+graph_identifier,  getModel(baseURI,databusFilePath,"api-demo-activity.ttl"), true);
-        updateModel(df+graph_identifier, getModel(baseURI,databusFilePath,"api-demo-data.ttl"), true);
+        updateModel(df+graph_identifier, getModel(baseURI,databusFilePath,"api-demo-data.ttl"), false);
         log.info("loaded " + df+graph_identifier);
 
 
