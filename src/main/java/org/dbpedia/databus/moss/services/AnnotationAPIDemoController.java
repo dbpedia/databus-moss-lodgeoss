@@ -6,7 +6,6 @@ import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFLanguages;
 import org.apache.jena.riot.RDFParser;
-import org.dbpedia.databus.utils.DatabusFileUtil;
 import org.dbpedia.databus.utils.MossUtilityFunctions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,9 +21,11 @@ public class AnnotationAPIDemoController {
 
     private final Logger log = LoggerFactory.getLogger(AnnotationAPIDemoController.class);
     private final MetadataService ms;
+    private final DatabusUtilService dbFileUtil;
 
-    public AnnotationAPIDemoController(@Autowired MetadataService ms) {
+    public AnnotationAPIDemoController(@Autowired MetadataService ms, @Autowired DatabusUtilService dbFileUtil) {
         this.ms = ms;
+        this.dbFileUtil = dbFileUtil;
     }
 
     @PutMapping(value = "/{publisher}/{group}/{artifact}/{version}/{fileName}")
@@ -57,8 +58,8 @@ public class AnnotationAPIDemoController {
             return new ResponseEntity<>("Failed: " + e, HttpStatus.BAD_REQUEST);
         }
 
-        String databus_file_iri = "https://databus.dbpedia.org/" + publisher + "/" + group + "/" + artifact + "/" + version + "/" + fileName;
-        boolean is_id = DatabusFileUtil.validate(databus_file_iri);
+        String databus_file_iri = dbFileUtil.DATABUS_BASE + publisher + "/" + group + "/" + artifact + "/" + version + "/" + fileName;
+        boolean is_id = dbFileUtil.validate(databus_file_iri);
 
         if (!is_id) {
             return new ResponseEntity<>("Failed: " + databus_file_iri + " is no valid Databus ID" , HttpStatus.BAD_REQUEST);

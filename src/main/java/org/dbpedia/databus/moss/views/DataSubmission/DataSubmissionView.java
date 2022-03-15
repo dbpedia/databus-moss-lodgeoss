@@ -20,8 +20,8 @@ import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFLanguages;
 import org.apache.jena.riot.RDFParser;
+import org.dbpedia.databus.moss.services.DatabusUtilService;
 import org.dbpedia.databus.moss.services.MetadataService;
-import org.dbpedia.databus.moss.views.annotation.AnnotationURL;
 import org.dbpedia.databus.moss.views.main.MainView;
 import org.dbpedia.databus.utils.MossUtilityFunctions;
 import org.slf4j.Logger;
@@ -44,9 +44,11 @@ public class DataSubmissionView extends Div implements BeforeEnterObserver {
     TextArea data_area = new TextArea();
     RadioButtonGroup<String> rdf_type_selection = new RadioButtonGroup<>();
     Button refreshBTN = new Button();
+    DatabusUtilService dbFileUtil;
 
-    public DataSubmissionView (@Autowired MetadataService ms) {
+    public DataSubmissionView (@Autowired MetadataService ms, @Autowired DatabusUtilService dbFileUtil) {
         this.ms = ms;
+        this.dbFileUtil = dbFileUtil;
         addClassName("submit-data-view");
 
         refreshBTN.setIcon(VaadinIcon.REFRESH.create());
@@ -73,7 +75,7 @@ public class DataSubmissionView extends Div implements BeforeEnterObserver {
         databusIdTF.setWidth("50%");
         databusIdTF.addValueChangeListener(event -> {
 
-            int i = MossUtilityFunctions.checkIfValidDatabusId(event.getValue());
+            int i = dbFileUtil.checkIfValidDatabusId(event.getValue());
             if (i == 1) {
                 databusIdTF.setInvalid(false);
             } else if (i == 0) {

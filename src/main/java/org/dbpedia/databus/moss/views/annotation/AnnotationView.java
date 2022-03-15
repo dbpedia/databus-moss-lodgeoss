@@ -15,20 +15,17 @@ import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
-import com.vaadin.flow.data.binder.Binder;
 import com.vaadin.flow.data.provider.ListDataProvider;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
-import com.vaadin.flow.data.validator.RegexpValidator;
 import com.vaadin.flow.data.value.ValueChangeMode;
 import com.vaadin.flow.router.*;
+import org.dbpedia.databus.moss.services.DatabusUtilService;
 import org.dbpedia.databus.moss.services.MetadataService;
 import org.dbpedia.databus.moss.views.main.MainView;
 import org.dbpedia.databus.utils.*;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.net.URL;
 import java.util.*;
-import java.util.regex.Pattern;
 
 @Route(value = "annotate", layout = MainView.class)
 @PageTitle("Annotation")
@@ -47,9 +44,12 @@ public class AnnotationView extends Div implements BeforeEnterObserver {
     Div versionDiv = new Div();
 
     MetadataService ms;
+    DatabusUtilService dbFileUtil;
 
-    public AnnotationView(@Autowired MetadataService ms) {
+    public AnnotationView(@Autowired MetadataService ms, @Autowired DatabusUtilService dbFileUtil) {
         this.ms = ms;
+        this.dbFileUtil = dbFileUtil;
+
         addClassName("about-view");
 
         //Headline
@@ -60,7 +60,7 @@ public class AnnotationView extends Div implements BeforeEnterObserver {
         databusIdTF.setWidth("50%");
         databusIdTF.addValueChangeListener(event -> {
 
-            int i = MossUtilityFunctions.checkIfValidDatabusId(event.getValue());
+            int i = dbFileUtil.checkIfValidDatabusId(event.getValue());
             if (i == 1) {
                 databusIdTF.setInvalid(false);
             } else if (i == 0) {
@@ -144,7 +144,7 @@ public class AnnotationView extends Div implements BeforeEnterObserver {
 
         submitBTN.addClickListener(
                 (ComponentEventListener<ClickEvent<Button>>) buttonClickEvent -> {
-                    if (DatabusFileUtil.validate(databusIdTF.getValue())
+                    if (dbFileUtil.validate(databusIdTF.getValue())
                     && ! annotationUrls.isEmpty()) {
                         ms.createAnnotation(databusIdTF.getValue(), annotationUrls);
                         updateVersionLink(databusIdTF.getValue());

@@ -27,9 +27,10 @@ import org.dbpedia.databus.utils.LookupRequester;
 import org.dbpedia.databus.utils.MossUtilityFunctions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 @Route(value = "search", layout = MainView.class)
@@ -45,15 +46,19 @@ public class SearchView extends Div {
 
     private final Grid<SearchResult> result_grid = new Grid<>();
 
-    private final String databus_sparql_endpoint = "https://databus.dbpedia.org/repo/sparql";
+    private final String databus_sparql_endpoint;
 
-    private final String mods_endpoint = "https://mods.tools.dbpedia.org/sparql";
+    private final String databus_mods_endpoint;
 
     private final List<SearchResult> result_list = new ArrayList<>();
 
     private final Logger log = LoggerFactory.getLogger(SearchView.class);
 
-    public SearchView() {
+    @Autowired
+    public SearchView(@Value("${databus.file.endpoint}") String databus_file_endpoint, @Value("${databus.mods.endpoint}") String databus_mods_endpoint) {
+
+        this.databus_mods_endpoint = databus_mods_endpoint;
+        this.databus_sparql_endpoint = databus_file_endpoint;
 
         addClassName("search-view");
         add(new H1("Databus Metadata Overlay Search System"));
@@ -122,12 +127,12 @@ public class SearchView extends Div {
         result_grid.addColumn(new ComponentRenderer<>(search_result -> {
             HorizontalLayout cell = new HorizontalLayout();
             Html cellText = new Html(
-                    "<span>" +
+                    "<div style=\"background-color:" + search_result.getColorCode() + "\">" +
                             "<u>" + search_result.getTitle() + "</u>" +
                             "<br>" +
                             "<a href=\""+search_result.getDatabusFileUri() + "\">"+ search_result.getDatabusFileUri() + "</a>" +
                             "<br>" +
-                            search_result.getComment() + "</span>");
+                            search_result.getComment() + "</div>");
             cell.add(cellText);
             return cell;
         })).setHeader("Results");
@@ -160,7 +165,7 @@ public class SearchView extends Div {
                         break;
                     case "Annotations":
                         query = buildAnnotationQuery(iris);
-                        endpoint = mods_endpoint;
+                        endpoint = this.databus_mods_endpoint;
                         break;
                     default:
                         query = buildVoidQuery(iris);
@@ -206,9 +211,10 @@ public class SearchView extends Div {
             while (rs.hasNext()) {
                 QuerySolution qs = rs.next();
 
-                SearchResult row = new SearchResult(qs.get("versionURI").toString(),
+                SearchResult row = new SearchResult(getIDTypeFromClass(qs.get("type").toString()),
+                        qs.get("versionURI").toString(),
                         qs.get("title").toString(),
-                        qs.get("file").toString(),
+                        qs.get("id").toString(),
                         qs.get("comment").toString());
 
                 result_list.add(row);
@@ -216,6 +222,28 @@ public class SearchView extends Div {
         }
         log.debug("Got result sized:\n" + result_list.size());
         return result_list;
+    }
+
+    private IDType getIDTypeFromClass(String classURI) {
+        IDType result;
+        switch(classURI) {
+            case "https://databus.dbpedia.org/system/voc/Collection":
+                result = IDType.COLLECTION;
+                break;
+            case "http://dataid.dbpedia.org/ns/core#Artifact":
+                result = IDType.ARTIFACT;
+                break;
+            case "http://dataid.dbpedia.org/ns/core#Group":
+                result = IDType.GROUP;
+                break;
+            case "http://dataid.dbpedia.org/ns/core#Version":
+                result = IDType.VERSION;
+                break;
+            default:
+                result = IDType.FILE;
+                break;
+        }
+        return result;
     }
 
     private void updateSuggestions(String query) {
@@ -249,8 +277,7 @@ public class SearchView extends Div {
             builder.append(" ?voidStats ?partition").append(i).append(" [\n").append("   ?p").append(i).append(" <").append(iris.get(i)).append("> ;\n").append("    void:triples ?triples").append(i).append(" \n").append(" ] .");
         }
 
-
-        return "PREFIX foaf: <http://xmlns.com/foaf/0.1/>\n"+
+        String queryString = "PREFIX foaf: <http://xmlns.com/foaf/0.1/>\n"+
                 "PREFIX void: <http://rdfs.org/ns/void#>\n"+
                 "PREFIX dataid: <http://dataid.dbpedia.org/ns/core#>\n"+
                 "PREFIX dct:    <http://purl.org/dc/terms/>\n"+
@@ -260,22 +287,27 @@ public class SearchView extends Div {
                 "PREFIX rdfs:   <http://www.w3.org/2000/01/rdf-schema#>\n"+
                 "PREFIX mods:   <http://mods.tools.dbpedia.org/>\n"+
                 "\n"+
-                "SELECT ?title ?comment ?versionURI ?voidStats ?file {\n"+
+                "SELECT ?type ?title ?comment ?versionURI ?voidStats ?id {\n"+
                 " SERVICE <https://mods.tools.dbpedia.org/sparql> {\n"+
                 builder +
                 "  \n"+
-                " ?s <http://www.w3.org/ns/prov#used> ?file . # energy file\n"+
+                " ?s <http://www.w3.org/ns/prov#used> ?id . # energy file\n"+
                 " ?s <http://www.w3.org/ns/prov#generated> ?voidStats . # automatic content description\n"+
                 "  \n"+
                 " }\n"+
+                "     ?dataset a ?type .\n" +
                 "     ?dataset dataid:group ?group .\n"+
                 "     ?dataset dcat:distribution ?distribution .\n"+
                 "     ?dataset dataid:version ?versionURI .\n"+
                 "     ?dataset dct:title ?title .\n"+
                 "     ?dataset rdfs:comment ?comment .\n"+
-                "     ?distribution dataid:file ?file .\n"+
+                "     ?distribution dataid:file ?id .\n"+
                 "\n"+
                 "}";
+
+        log.info(queryString);
+
+        return queryString;
     }
 
     private String buildAnnotationQuery(List<String> iris) {
@@ -285,9 +317,7 @@ public class SearchView extends Div {
             builder.append("  ?file <http://purl.org/dc/elements/1.1/subject> <").append(iri).append("> .\n");
         }
 
-        String tmp = "PREFIX foaf: <http://xmlns.com/foaf/0.1/>\n" +
-                "PREFIX void: <http://rdfs.org/ns/void#>\n" +
-                "PREFIX dataid: <http://dataid.dbpedia.org/ns/core#>\n" +
+        String query = "PREFIX dataid: <http://dataid.dbpedia.org/ns/core#>\n" +
                 "PREFIX dct:    <http://purl.org/dc/terms/>\n" +
                 "PREFIX dcat:   <http://www.w3.org/ns/dcat#>\n" +
                 "PREFIX db:     <https://databus.dbpedia.org/>\n" +
@@ -296,24 +326,33 @@ public class SearchView extends Div {
                 "PREFIX mods:   <http://mods.tools.dbpedia.org/>\n" +
                 "\n" +
                 "\n" +
-                "SELECT ?title ?comment ?versionURI ?file ?downloadURL {\n" +
+                "SELECT ?type ?title ?comment ?id ?versionURI {\n" +
                 "  GRAPH ?g {\n" +
                 "    ?s a <http://mods.tools.dbpedia.org/ns/demo#AnnotationMod> .\n" +
-                "    ?s <http://www.w3.org/ns/prov#used> ?file .\n" +
+                "    ?s <http://www.w3.org/ns/prov#used> ?id .\n" +
                 builder +
                 "  }  \n" +
                 "  SERVICE <http://databus.dbpedia.org/repo/sparql> {\n" +
-                "     ?dataset dataid:group ?group .\n" +
-                "     ?dataset dcat:distribution ?distribution .\n" +
-                "     ?dataset dataid:version ?versionURI .\n" +
-                "     ?distribution dataid:file ?file .\n" +
-                "     ?dataset dct:title ?title .\n" +
-                "     ?dataset rdfs:comment ?comment .\n" +
-                " }\n" +
+                "    {\n" +
+                "    \t?dataset a ?type .\n" +
+                "    \t#OPTIONAL { ?dataset dataid:group ?group . }\n" +
+                "    \tOPTIONAL { ?dataset dataid:version ?versionURI . }\n" +
+                "        ?dataset dcat:distribution ?distribution . \n" +
+                "    \t?distribution dataid:file ?id .\n" +
+                "    \t?dataset dct:title ?title .\n" +
+                "    \t?dataset rdfs:comment ?comment .\n" +
+                "    } UNION {\n" +
+                "\t\tVALUES ?type { dataid:Group dataid:Artifact dataid:Version <https://databus.dbpedia.org/system/voc/Collection> }\n" +
+                "      \t\n" +
+                "      \t?id a ?type .\n" +
+                "      \t?id dct:title ?title .\n" +
+                "      \t?id dct:abstract ?comment .\n" +
+                "    }\n" +
+                "  }\n" +
                 "}";
 
-        log.info(tmp);
-        return tmp;
+        log.info(query);
+        return query;
     }
 
 }

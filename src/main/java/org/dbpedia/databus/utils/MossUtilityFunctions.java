@@ -6,8 +6,6 @@ import java.io.Reader;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.io.Writer;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import com.atomgraph.etl.json.JsonStreamRDFWriter;
 import org.apache.jena.riot.system.StreamRDFLib;
 
@@ -24,25 +22,7 @@ public final class MossUtilityFunctions {
         }
     }
 
-    public static int checkIfValidDatabusId (String databusIri) {
-        String fileRegex = "^https://databus\\.dbpedia\\.org/[^\\/]+/[^/]+/[^/]+/[^/]+/[^/]+$";
-        if (!databusIri.matches(fileRegex))
-            return 0;
-        URL url = null;
-        try {
-            url = new URL(databusIri);
-            HttpURLConnection con = (HttpURLConnection) url.openConnection();
-            con.setRequestMethod("HEAD");
-            int status = con.getResponseCode();
-            if (status >= 200 && status < 400)
-                return 1;
-            else
-                return 0;
-        } catch (Exception e) {
-            e.printStackTrace();
-            return -1;
-        }
-    }
+
 
     public static String get_ntriples_from_json(String json_string) {
 

@@ -1,8 +1,6 @@
 package org.dbpedia.databus.moss.services;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.jena.assembler.Mode;
-import org.apache.jena.base.Sys;
 import org.apache.jena.query.*;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
@@ -11,16 +9,18 @@ import org.dbpedia.databus.moss.annotation.SVGBuilder;
 import org.dbpedia.databus.moss.views.annotation.AnnotationURL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import virtuoso.jena.driver.VirtDataset;
 
-import javax.sound.midi.SysexMessage;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.net.HttpURLConnection;
 import java.net.URI;
+import java.net.URL;
 import java.net.URLEncoder;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -28,6 +28,7 @@ import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
 
 @Service
 public class MetadataService {
@@ -40,16 +41,20 @@ public class MetadataService {
     private final File baseDir;
     private final String baseURI;
 
+    private final DatabusUtilService dbFileUtil;
+
     public MetadataService(@Value("${virt.url}") String virtUrl,
                            @Value("${virt.usr}") String virtUsr,
                            @Value("${virt.psw}") String virtPsw,
                            @Value("${file.vol}") String volume,
-                           @Value("${uri.base}") String baseURI) {
+                           @Value("${uri.base}") String baseURI,
+                           @Autowired DatabusUtilService dbFileUtil) {
         this.virtUrl = virtUrl;
         this.virtUsr = virtUsr;
         this.virtPsw = virtPsw;
         this.baseDir = new File(volume);
         this.baseURI = baseURI;
+        this.dbFileUtil = dbFileUtil;
     }
 
 
@@ -82,7 +87,7 @@ public class MetadataService {
                     ResourceFactory.createResource(annotationURL.getUri()));
         }
 
-        String databusFilePath = df.replace("https://databus.dbpedia.org/","");
+        String databusFilePath = df.replace(dbFileUtil.DATABUS_BASE, "");
         try {
             saveModel(activityModel,databusFilePath,"activity.ttl");
             saveModel(annotationModel,databusFilePath,"annotation.ttl");
@@ -174,7 +179,7 @@ public class MetadataService {
                 ResourceFactory.createResource("https://moss.tools.dbpedia.org/submit-data?dfid=" +
                         URLEncoder.encode(df, StandardCharsets.UTF_8)));
 
-        String databusFilePath = df.replace("https://databus.dbpedia.org/","");
+        String databusFilePath = df.replace(dbFileUtil.DATABUS_BASE, "");
 
         saveModel(activityModel,databusFilePath,"api-demo-activity.ttl");
         saveModel(push_model,databusFilePath,"api-demo-data.ttl");
@@ -198,7 +203,7 @@ public class MetadataService {
 
     public String get_api_data(String df) {
 
-        String[] id_split = df.replace("https://databus.dbpedia.org/", "").split("/");
+        String[] id_split = df.replace(dbFileUtil.DATABUS_BASE, "").split("/");
 
         if (id_split.length != 5) {
             log.warn("Error finding data for Databus Identifier " + df);
@@ -226,4 +231,6 @@ public class MetadataService {
             return "";
         }
     }
+
+
 }
