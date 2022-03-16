@@ -3,6 +3,9 @@ package org.dbpedia.databus.moss.views.search;
 
 import org.apache.jena.query.QuerySolution;
 
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
+
 enum IDType {
     COLLECTION,
     GROUP,
@@ -94,8 +97,8 @@ public class SearchResult {
         String identifier = qs.get("id").toString();
         String databusPage = qs.contains("databusPage") ? qs.get("databusPage").toString() : identifier;
         IDType type = getIDTypeFromClass(qs.get("type").toString());
-        String title = qs.get("title").toString();
-        String comment = qs.get("comment").toString();
+        String title = URLDecoder.decode(qs.get("title").toString(), StandardCharsets.UTF_8);
+        String comment = URLDecoder.decode(qs.get("comment").toString(), StandardCharsets.UTF_8);
 
         return new SearchResult(type, databusPage, title, identifier, comment);
     }
