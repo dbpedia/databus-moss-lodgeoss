@@ -14,6 +14,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.io.IOException;
+import java.util.Optional;
 
 @RestController
 @RequestMapping(value = "/annotation-api-demo")
@@ -28,23 +29,31 @@ public class AnnotationAPIDemoController {
         this.dbFileUtil = dbFileUtil;
     }
 
-    @PutMapping(value = "/{publisher}/{group}/{artifact}/{version}/{fileName}")
+    @PutMapping(value = {"/{publisher}/{group}/{artifact}/{version}/{fileName}", "/{publisher}/{group}/{artifact}/{version}", "/{publisher}/{group}/{artifact}", "/{publisher}/{group}"})
     ResponseEntity<String> put_jsonld_annotation(
             @RequestHeader(value = "content-type") String content_type,
             @PathVariable String publisher,
             @PathVariable String group,
-            @PathVariable String artifact,
-            @PathVariable String version,
-            @PathVariable String fileName,
+            @PathVariable(required = false) String artifact,
+            @PathVariable(required = false) String version,
+            @PathVariable(required = false) String fileName,
             @RequestBody String rdf_string
     ) {
+        StringBuilder sb = new StringBuilder(dbFileUtil.DATABUS_BASE + "/" + publisher + "/" + group);
 
+        for (String pathPart : new String[]{artifact, version, fileName}) {
+            if (pathPart != null) sb.append("/").append(pathPart);
+        }
+        return annotateIdentifier(sb.toString(), content_type, rdf_string);
+    }
+
+    private ResponseEntity<String> annotateIdentifier(String identifier, String content_type, String content) {
         Lang rdf_lang;
 
         // catch json input and convert it
         // set language to ntriples since this is returned by json2rdf
         if (content_type.equals("application/json")) {
-            rdf_string = MossUtilityFunctions.get_ntriples_from_json(rdf_string);
+            content = MossUtilityFunctions.get_ntriples_from_json(content);
             rdf_lang = RDFLanguages.NTRIPLES;
         } else {
             rdf_lang = RDFLanguages.contentTypeToLang(content_type);
@@ -52,20 +61,20 @@ public class AnnotationAPIDemoController {
         // Check if the submitted file actually parses
         Model model = ModelFactory.createDefaultModel();
         try {
-            RDFParser.create().fromString(rdf_string).lang(rdf_lang).parse(model);
+            RDFParser.create().fromString(content).lang(rdf_lang).parse(model);
         } catch (Exception e) {
             log.warn("Exception during parsing: ", e);
             return new ResponseEntity<>("Failed: " + e, HttpStatus.BAD_REQUEST);
         }
 
-        String databus_file_iri = dbFileUtil.DATABUS_BASE + publisher + "/" + group + "/" + artifact + "/" + version + "/" + fileName;
-        boolean is_id = dbFileUtil.validate(databus_file_iri);
+
+        boolean is_id = dbFileUtil.validate(identifier);
 
         if (!is_id) {
-            return new ResponseEntity<>("Failed: " + databus_file_iri + " is no valid Databus ID" , HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>("Failed: " + identifier + " is no valid Databus ID" , HttpStatus.BAD_REQUEST);
         }
         try {
-            ms.submit_model(databus_file_iri, model);
+            ms.submit_model(identifier, model);
         } catch (IOException ioex) {
             log.warn("Exception during pushing data: ", ioex);
             return new ResponseEntity<>("Failed: " + ioex, HttpStatus.INTERNAL_SERVER_ERROR);

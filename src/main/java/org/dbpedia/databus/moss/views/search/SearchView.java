@@ -159,14 +159,11 @@ public class SearchView extends Div {
                 String query;
                 String endpoint;
                 switch (search_type_radio_group.getValue()) {
-                    case "VOID":
-                        query =buildVoidQuery(iris);
-                        endpoint = databus_sparql_endpoint;
-                        break;
                     case "Annotations":
                         query = buildAnnotationQuery(iris);
                         endpoint = this.databus_mods_endpoint;
                         break;
+                    case "VOID":
                     default:
                         query = buildVoidQuery(iris);
                         endpoint = databus_sparql_endpoint;
@@ -251,7 +248,9 @@ public class SearchView extends Div {
             builder.append(" ?voidStats ?partition").append(i).append(" [\n").append("   ?p").append(i).append(" <").append(iris.get(i)).append("> ;\n").append("    void:triples ?triples").append(i).append(" \n").append(" ] .");
         }
 
-        String queryString = "PREFIX foaf: <http://xmlns.com/foaf/0.1/>\n"+
+        //log.info(queryString);
+
+        return "PREFIX foaf: <http://xmlns.com/foaf/0.1/>\n"+
                 "PREFIX void: <http://rdfs.org/ns/void#>\n"+
                 "PREFIX dataid: <http://dataid.dbpedia.org/ns/core#>\n"+
                 "PREFIX dct:    <http://purl.org/dc/terms/>\n"+
@@ -278,10 +277,6 @@ public class SearchView extends Div {
                 "     ?distribution dataid:file ?id .\n"+
                 "\n"+
                 "}";
-
-        log.info(queryString);
-
-        return queryString;
     }
 
     private String buildAnnotationQuery(List<String> iris) {
@@ -292,7 +287,9 @@ public class SearchView extends Div {
         }
 
         // adds https://databus.dbpedia.org/system/voc/Collection to possible values for backward compatibility with Databus1.0
-        String query = "PREFIX dataid: <http://dataid.dbpedia.org/ns/core#>\n" +
+
+        //log.info(query);
+        return "PREFIX dataid: <http://dataid.dbpedia.org/ns/core#>\n" +
                 "PREFIX dct:    <http://purl.org/dc/terms/>\n" +
                 "PREFIX dcat:   <http://www.w3.org/ns/dcat#>\n" +
                 "PREFIX db:     <https://databus.dbpedia.org/>\n" +
@@ -325,9 +322,6 @@ public class SearchView extends Div {
                 "    }\n" +
                 "  }\n" +
                 "}";
-
-        log.info(query);
-        return query;
     }
 
 }
