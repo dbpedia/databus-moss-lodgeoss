@@ -1,6 +1,8 @@
 package org.dbpedia.databus.moss.views.search;
 
 
+import org.apache.jena.query.QuerySolution;
+
 enum IDType {
     COLLECTION,
     GROUP,
@@ -12,17 +14,17 @@ enum IDType {
 public class SearchResult {
 
     public IDType type;
-    public String versionUri;
-    public String databusFileUri;
+    public String databusPage;
+    public String databusID;
     public String title;
     public String comment;
 
 
-    public SearchResult(IDType type, String versionUri, String title, String databusFileUri, String comment) {
+    public SearchResult(IDType type, String databusPage, String title, String databusID, String comment) {
         this.type = type;
-        this.versionUri = versionUri;
+        this.databusPage = databusPage;
         this.title = title;
-        this.databusFileUri = databusFileUri;
+        this.databusID = databusID;
         this.comment = comment;
     }
 
@@ -35,19 +37,19 @@ public class SearchResult {
     }
 
     public String getDatabusFileUri() {
-        return databusFileUri;
+        return databusID;
     }
 
     public String getVersionUri() {
-        return versionUri;
+        return databusPage;
     }
 
     public void setDatabusFileUri(String databusFileUri) {
-        this.databusFileUri = databusFileUri;
+        this.databusID = databusFileUri;
     }
 
     public void setVersionUri(String versionUri) {
-        this.versionUri = versionUri;
+        this.databusPage = versionUri;
     }
 
     public String getTitle() {
@@ -86,5 +88,37 @@ public class SearchResult {
                 break;
         }
         return color;
+    }
+
+    public static SearchResult createFromQuerySolution(QuerySolution qs) {
+        String identifier = qs.get("id").toString();
+        String databusPage = qs.contains("databusPage") ? qs.get("databusPage").toString() : identifier;
+        IDType type = getIDTypeFromClass(qs.get("type").toString());
+        String title = qs.get("title").toString();
+        String comment = qs.get("comment").toString();
+
+        return new SearchResult(type, databusPage, title, identifier, comment);
+    }
+
+    private static IDType getIDTypeFromClass(String classURI) {
+        IDType result;
+        switch(classURI) {
+            case "https://databus.dbpedia.org/system/voc/Collection":
+                result = IDType.COLLECTION;
+                break;
+            case "http://dataid.dbpedia.org/ns/core#Artifact":
+                result = IDType.ARTIFACT;
+                break;
+            case "http://dataid.dbpedia.org/ns/core#Group":
+                result = IDType.GROUP;
+                break;
+            case "http://dataid.dbpedia.org/ns/core#Version":
+                result = IDType.VERSION;
+                break;
+            default:
+                result = IDType.FILE;
+                break;
+        }
+        return result;
     }
 }

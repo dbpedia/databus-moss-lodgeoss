@@ -211,39 +211,13 @@ public class SearchView extends Div {
             while (rs.hasNext()) {
                 QuerySolution qs = rs.next();
 
-                SearchResult row = new SearchResult(getIDTypeFromClass(qs.get("type").toString()),
-                        qs.get("versionURI").toString(),
-                        qs.get("title").toString(),
-                        qs.get("id").toString(),
-                        qs.get("comment").toString());
+                SearchResult row = SearchResult.createFromQuerySolution(qs);
 
                 result_list.add(row);
             }
         }
         log.debug("Got result sized:\n" + result_list.size());
         return result_list;
-    }
-
-    private IDType getIDTypeFromClass(String classURI) {
-        IDType result;
-        switch(classURI) {
-            case "https://databus.dbpedia.org/system/voc/Collection":
-                result = IDType.COLLECTION;
-                break;
-            case "http://dataid.dbpedia.org/ns/core#Artifact":
-                result = IDType.ARTIFACT;
-                break;
-            case "http://dataid.dbpedia.org/ns/core#Group":
-                result = IDType.GROUP;
-                break;
-            case "http://dataid.dbpedia.org/ns/core#Version":
-                result = IDType.VERSION;
-                break;
-            default:
-                result = IDType.FILE;
-                break;
-        }
-        return result;
     }
 
     private void updateSuggestions(String query) {
@@ -287,7 +261,7 @@ public class SearchView extends Div {
                 "PREFIX rdfs:   <http://www.w3.org/2000/01/rdf-schema#>\n"+
                 "PREFIX mods:   <http://mods.tools.dbpedia.org/>\n"+
                 "\n"+
-                "SELECT ?type ?title ?comment ?versionURI ?voidStats ?id {\n"+
+                "SELECT ?type ?title ?comment ?databusPage ?voidStats ?id {\n"+
                 " SERVICE <https://mods.tools.dbpedia.org/sparql> {\n"+
                 builder +
                 "  \n"+
@@ -298,7 +272,7 @@ public class SearchView extends Div {
                 "     ?dataset a ?type .\n" +
                 "     ?dataset dataid:group ?group .\n"+
                 "     ?dataset dcat:distribution ?distribution .\n"+
-                "     ?dataset dataid:version ?versionURI .\n"+
+                "     ?dataset dataid:version ?databusPage .\n"+
                 "     ?dataset dct:title ?title .\n"+
                 "     ?dataset rdfs:comment ?comment .\n"+
                 "     ?distribution dataid:file ?id .\n"+
@@ -317,6 +291,7 @@ public class SearchView extends Div {
             builder.append("  ?file <http://purl.org/dc/elements/1.1/subject> <").append(iri).append("> .\n");
         }
 
+        // adds https://databus.dbpedia.org/system/voc/Collection to possible values for backward compatibility with Databus1.0
         String query = "PREFIX dataid: <http://dataid.dbpedia.org/ns/core#>\n" +
                 "PREFIX dct:    <http://purl.org/dc/terms/>\n" +
                 "PREFIX dcat:   <http://www.w3.org/ns/dcat#>\n" +
@@ -326,7 +301,7 @@ public class SearchView extends Div {
                 "PREFIX mods:   <http://mods.tools.dbpedia.org/>\n" +
                 "\n" +
                 "\n" +
-                "SELECT ?type ?title ?comment ?id ?versionURI {\n" +
+                "SELECT ?type ?title ?comment ?id ?databusPage {\n" +
                 "  GRAPH ?g {\n" +
                 "    ?s a <http://mods.tools.dbpedia.org/ns/demo#AnnotationMod> .\n" +
                 "    ?s <http://www.w3.org/ns/prov#used> ?id .\n" +
@@ -336,13 +311,13 @@ public class SearchView extends Div {
                 "    {\n" +
                 "    \t?dataset a ?type .\n" +
                 "    \t#OPTIONAL { ?dataset dataid:group ?group . }\n" +
-                "    \tOPTIONAL { ?dataset dataid:version ?versionURI . }\n" +
+                "    \tOPTIONAL { ?dataset dataid:version ?databusPage . }\n" +
                 "        ?dataset dcat:distribution ?distribution . \n" +
                 "    \t?distribution dataid:file ?id .\n" +
                 "    \t?dataset dct:title ?title .\n" +
                 "    \t?dataset rdfs:comment ?comment .\n" +
                 "    } UNION {\n" +
-                "\t\tVALUES ?type { dataid:Group dataid:Artifact dataid:Version <https://databus.dbpedia.org/system/voc/Collection> }\n" +
+                "\t\tVALUES ?type { dataid:Group dataid:Artifact dataid:Version <https://databus.dbpedia.org/system/voc/Collection> dataid:Collection }\n" +
                 "      \t\n" +
                 "      \t?id a ?type .\n" +
                 "      \t?id dct:title ?title .\n" +
