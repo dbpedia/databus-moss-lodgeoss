@@ -5,6 +5,7 @@ import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.icon.Icon;
@@ -15,6 +16,7 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.radiobutton.RadioButtonGroup;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
+import com.vaadin.flow.data.renderer.TemplateRenderer;
 import com.vaadin.flow.data.value.ValueChangeMode;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
@@ -124,18 +126,23 @@ public class SearchView extends Div {
             return cell;
         })).setHeader("Selected Search Terms");
 
-        result_grid.addColumn(new ComponentRenderer<>(search_result -> {
-            HorizontalLayout cell = new HorizontalLayout();
-            Html cellText = new Html(
-                    "<div style=\"background-color:" + search_result.getColorCode() + "\">" +
-                            "<u>" + search_result.getTitle() + "</u>" +
-                            "<br>" +
-                            "<a href=\""+search_result.getDatabusFileUri() + "\">"+ search_result.getDatabusFileUri() + "</a>" +
-                            "<br>" +
-                            search_result.getComment() + "</div>");
-            cell.add(cellText);
-            return cell;
-        })).setHeader("Results");
+//        result_grid.addColumn(new ComponentRenderer<>(search_result -> {
+//            HorizontalLayout cell = new HorizontalLayout();
+//            Html cellText = new Html(
+//                    "<div style=\"background-color:" + search_result.getColorCode() + "\">" +
+//                            "<u>" + search_result.getTitle() + "</u>" +
+//                            "<br>" +
+//                            "<a href=\""+search_result.getDatabusFileUri() + "\">"+ search_result.getDatabusFileUri() + "</a>" +
+//                            "<br>" +
+//                            search_result.getComment() + "</div>");
+//            cell.add(cellText);
+//            return cell;
+//        })).setHeader("Results");
+
+        result_grid.addColumn(SearchResult::getTitle).setSortable(true).setHeader("Title");
+        result_grid.addColumn(TemplateRenderer.<SearchResult>of("<a href=\"[[item.idUri]]\" target='_top'>[[item.idUri]]</a>").withProperty("idUri", SearchResult::getDatabusFileUri)).setHeader("Download");
+        result_grid.addColumn(SearchResult::getComment).setHeader("Comment");
+        result_grid.addColumn(searchResult -> searchResult.getType().toString()).setSortable(true).setHeader("Databus ID Type");
 
         search_field.setValueChangeMode(ValueChangeMode.LAZY);
         search_field.setPlaceholder("Search the Databus for Files containing or annotated with Classes, Properties etc.");
