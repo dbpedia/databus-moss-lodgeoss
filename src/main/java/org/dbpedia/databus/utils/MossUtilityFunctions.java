@@ -51,7 +51,6 @@ public final class MossUtilityFunctions {
         } else {
             result = null;
         }
-
         return result;
     }
 

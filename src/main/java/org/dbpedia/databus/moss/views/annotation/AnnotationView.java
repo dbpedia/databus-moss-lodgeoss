@@ -96,7 +96,6 @@ public class AnnotationView extends Div implements BeforeEnterObserver {
         TextField search_field = new TextField();
         search_field.setWidth("50%");
         search_field.addValueChangeListener(event -> {
-            System.out.println(event.getValue());
             suggestions.clear();
             updateSuggestions(event.getValue());
             suggestion_grid.getDataProvider().refreshAll();
@@ -144,7 +143,8 @@ public class AnnotationView extends Div implements BeforeEnterObserver {
 
         submitBTN.addClickListener(
                 (ComponentEventListener<ClickEvent<Button>>) buttonClickEvent -> {
-                    if (dbFileUtil.validate(databusIdTF.getValue(), MossUtilityFunctions.extractBaseFromURL(databusIdTF.getValue()))
+                    String identifier = databusIdTF.getValue();
+                    if (dbFileUtil.validate(identifier, MossUtilityFunctions.extractBaseFromURL(identifier))
                     && ! annotationUrls.isEmpty()) {
                         ms.createAnnotation(databusIdTF.getValue(), annotationUrls);
                         updateVersionLink(databusIdTF.getValue());

@@ -1,5 +1,6 @@
 package org.dbpedia.databus.moss.services;
 
+import org.apache.http.impl.client.LaxRedirectStrategy;
 import org.apache.jena.query.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,12 +51,18 @@ public class DatabusUtilService {
                 "  }\n" +
                 "} LIMIT 1"
         );
-        QueryExecution qexec = QueryExecutionFactory.sparqlService(databusBase + "/repo/sparql", query);
-        ResultSet rs = qexec.execSelect();
-        Boolean exists = rs.hasNext();
-        qexec.close();
+        String redirectedUri = getFinalRedirectionURI(databusBase + "/sparql");
+        if (redirectedUri == null) {
+            log.error("Couldnt determine endpoint of " + databusBase);
+            return false;
+        } else {
+            QueryExecution qexec = QueryExecutionFactory.sparqlService(redirectedUri, query);
+            ResultSet rs = qexec.execSelect();
+            Boolean exists = rs.hasNext();
+            qexec.close();
 
-        return exists;
+            return exists;
+        }
     }
 
     public int checkIfValidDatabusId(String databusIri, String databusBase) {
@@ -84,6 +91,18 @@ public class DatabusUtilService {
         } catch (Exception e) {
             e.printStackTrace();
             return -1;
+        }
+    }
+
+    public static String getFinalRedirectionURI(String uri) {
+        try {
+            HttpClient client = HttpClient.newBuilder().followRedirects(HttpClient.Redirect.ALWAYS).build();
+            HttpRequest request = HttpRequest.newBuilder().uri(new URI(uri)).method("HEAD", HttpRequest.BodyPublishers.noBody()).build();
+            HttpResponse<Void> response = client.send(request, HttpResponse.BodyHandlers.discarding());
+            return response.uri().toString();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
         }
     }
 }
