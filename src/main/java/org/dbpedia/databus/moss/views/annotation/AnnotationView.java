@@ -59,8 +59,8 @@ public class AnnotationView extends Div implements BeforeEnterObserver {
         databusIdTF = new TextField();
         databusIdTF.setWidth("50%");
         databusIdTF.addValueChangeListener(event -> {
-
-            int i = dbFileUtil.checkIfValidDatabusId(event.getValue());
+            String identifier = event.getValue();
+            int i = dbFileUtil.checkIfValidDatabusId(identifier, MossUtilityFunctions.extractBaseFromURL(identifier));
             if (i == 1) {
                 databusIdTF.setInvalid(false);
             } else if (i == 0) {
@@ -144,7 +144,7 @@ public class AnnotationView extends Div implements BeforeEnterObserver {
 
         submitBTN.addClickListener(
                 (ComponentEventListener<ClickEvent<Button>>) buttonClickEvent -> {
-                    if (dbFileUtil.validate(databusIdTF.getValue())
+                    if (dbFileUtil.validate(databusIdTF.getValue(), MossUtilityFunctions.extractBaseFromURL(databusIdTF.getValue()))
                     && ! annotationUrls.isEmpty()) {
                         ms.createAnnotation(databusIdTF.getValue(), annotationUrls);
                         updateVersionLink(databusIdTF.getValue());

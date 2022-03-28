@@ -16,6 +16,8 @@ import java.util.regex.Pattern;
 @Service
 public class DatabusUtilService {
 
+    static final Logger log = LoggerFactory.getLogger(DatabusUtilService.class);
+
     public final String DATABUS_BASE;
 
     @Autowired
@@ -23,9 +25,11 @@ public class DatabusUtilService {
         this.DATABUS_BASE = databusBaseUrl;
     }
 
-    static final Logger log = LoggerFactory.getLogger(DatabusUtilService.class);
+    public Boolean validate(String databusID, String databusBase) {
 
-    public Boolean validate(String databusID) {
+        if (databusBase == null) {
+            return false;
+        }
 
         Query query = QueryFactory.create(
                 "PREFIX dataid: <http://dataid.dbpedia.org/ns/core#>\n" +
@@ -46,7 +50,7 @@ public class DatabusUtilService {
                 "  }\n" +
                 "} LIMIT 1"
         );
-        QueryExecution qexec = QueryExecutionFactory.sparqlService(this.DATABUS_BASE + "/repo/sparql", query);
+        QueryExecution qexec = QueryExecutionFactory.sparqlService(databusBase + "/repo/sparql", query);
         ResultSet rs = qexec.execSelect();
         Boolean exists = rs.hasNext();
         qexec.close();
@@ -54,8 +58,13 @@ public class DatabusUtilService {
         return exists;
     }
 
-    public int checkIfValidDatabusId(String databusIri) {
-        String idRegex = "^" + Pattern.quote(this.DATABUS_BASE) + "(/[^/]+){1,5}";
+    public int checkIfValidDatabusId(String databusIri, String databusBase) {
+
+        if (databusBase == null) {
+            return -1;
+        }
+
+        String idRegex = "^" + Pattern.quote(databusBase) + "(/[^/]+){1,5}";
         if (!databusIri.matches(idRegex))
             return 0;
         URL url = null;

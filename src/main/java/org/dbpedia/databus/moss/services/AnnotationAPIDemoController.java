@@ -68,7 +68,7 @@ public class AnnotationAPIDemoController {
         }
 
 
-        boolean is_id = dbFileUtil.validate(identifier);
+        boolean is_id = dbFileUtil.validate(identifier, MossUtilityFunctions.extractBaseFromURL(identifier));
 
         if (!is_id) {
             return new ResponseEntity<>("Failed: " + identifier + " is no valid Databus ID" , HttpStatus.BAD_REQUEST);

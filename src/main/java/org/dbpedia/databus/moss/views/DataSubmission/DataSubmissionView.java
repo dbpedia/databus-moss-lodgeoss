@@ -74,8 +74,8 @@ public class DataSubmissionView extends Div implements BeforeEnterObserver {
         databusIdTF = new TextField();
         databusIdTF.setWidth("50%");
         databusIdTF.addValueChangeListener(event -> {
-
-            int i = dbFileUtil.checkIfValidDatabusId(event.getValue());
+            String identifier = event.getValue();
+            int i = dbFileUtil.checkIfValidDatabusId(identifier, MossUtilityFunctions.extractBaseFromURL(identifier));
             if (i == 1) {
                 databusIdTF.setInvalid(false);
             } else if (i == 0) {

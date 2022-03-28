@@ -6,10 +6,16 @@ import java.io.Reader;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.io.Writer;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import com.atomgraph.etl.json.JsonStreamRDFWriter;
 import org.apache.jena.riot.system.StreamRDFLib;
 
 public final class MossUtilityFunctions {
+
+
+    public static final Pattern baseRegex = Pattern.compile("^(https?://[^/]+)");
 
     // this is intentionally without any # or / ending since json2rdf always appends # to the base uri
     public static final String json_rdf_base_uri = "http://mods.tools.dbpedia.org/ns/demo";
@@ -33,6 +39,20 @@ public final class MossUtilityFunctions {
         json_rdf_writer.convert();
 
         return w.toString();
+    }
+
+    public static String extractBaseFromURL(String uri) {
+        Matcher m = baseRegex.matcher(uri);
+
+        String result;
+
+        if (m.find()) {
+            result = m.group(1);
+        } else {
+            result = null;
+        }
+
+        return result;
     }
 
 }
