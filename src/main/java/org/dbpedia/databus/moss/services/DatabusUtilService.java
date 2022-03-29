@@ -46,7 +46,7 @@ public class DatabusUtilService {
                 "  {\n" +
                 "  ?s dataid:file ?id .\n" +
                 "  } UNION {\n" +
-                "    VALUES ?type { dataid:Group dataid:Artifact dataid:Version <https://databus.dbpedia.org/system/voc/Collection> } \n" +
+                "    VALUES ?type { dataid:Group dataid:Artifact dataid:Version <https://databus.dbpedia.org/system/voc/Collection> dataid:Collection} \n" +
                 "    ?id a ?type .\n" +
                 "    ?id dct:publisher ?s .\n" +
                 "  }\n" +
