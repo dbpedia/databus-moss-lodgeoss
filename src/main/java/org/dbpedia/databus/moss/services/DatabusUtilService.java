@@ -75,15 +75,13 @@ public class DatabusUtilService {
         String idRegex = "^" + Pattern.quote(databusBase) + "(/[^/]+){1,5}";
         if (!databusIri.matches(idRegex))
             return 0;
-        URL url = null;
 
         CookieHandler.setDefault(new CookieManager());
         try {
             URI uri = URI.create(databusIri);
-            HttpClient client = HttpClient.newBuilder().cookieHandler(CookieHandler.getDefault()).build();
-            HttpRequest request = HttpRequest.newBuilder().uri(uri).method("HEAD", HttpRequest.BodyPublishers.noBody()).build();
+            HttpClient client = HttpClient.newHttpClient();
+            HttpRequest request = HttpRequest.newBuilder().uri(uri).header("Accept", "application/*").method("HEAD", HttpRequest.BodyPublishers.noBody()).build();
             HttpResponse<Void> response = client.send(request, HttpResponse.BodyHandlers.discarding());
-
             int status = response.statusCode();
             if (status >= 200 && status < 400)
                 return 1;
