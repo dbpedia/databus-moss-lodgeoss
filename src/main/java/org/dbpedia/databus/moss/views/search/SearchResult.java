@@ -107,6 +107,7 @@ public class SearchResult {
         IDType result;
         switch(classURI) {
             case "https://databus.dbpedia.org/system/voc/Collection":
+            case "http://dataid.dbpedia.org/ns/core#Collection":
                 result = IDType.COLLECTION;
                 break;
             case "http://dataid.dbpedia.org/ns/core#Artifact":
@@ -118,6 +119,7 @@ public class SearchResult {
             case "http://dataid.dbpedia.org/ns/core#Version":
                 result = IDType.VERSION;
                 break;
+
             default:
                 result = IDType.FILE;
                 break;
