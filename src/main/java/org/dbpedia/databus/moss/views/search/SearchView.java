@@ -14,6 +14,7 @@ import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.radiobutton.RadioButtonGroup;
+import com.vaadin.flow.component.select.Select;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.data.renderer.TemplateRenderer;
@@ -22,6 +23,7 @@ import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.router.RouteAlias;
 import org.apache.jena.query.*;
+import org.dbpedia.databus.moss.services.DatabusUtilService;
 import org.dbpedia.databus.moss.views.main.MainView;
 import org.dbpedia.databus.utils.LookupFrontendData;
 import org.dbpedia.databus.utils.LookupObject;
@@ -45,6 +47,7 @@ public class SearchView extends Div {
     private final List<LookupFrontendData> selected_objects = new ArrayList<>();
     private final Grid<LookupFrontendData> selected_grid = new Grid<>();
     private final Grid<LookupFrontendData> suggestion_grid = new Grid<>();
+    private final Select<String> selectDatabus = new Select<>();
 
     private final Grid<SearchResult> result_grid = new Grid<>();
 
@@ -167,13 +170,13 @@ public class SearchView extends Div {
                 String endpoint;
                 switch (search_type_radio_group.getValue()) {
                     case "Annotations":
-                        query = buildAnnotationQuery(iris);
+                        query = buildAnnotationQuery(iris, DatabusUtilService.getFinalRedirectionURI(selectDatabus.getValue() + "/sparql"));
                         endpoint = this.databus_mods_endpoint;
                         break;
                     case "VOID":
                     default:
                         query = buildVoidQuery(iris);
-                        endpoint = databus_sparql_endpoint;
+                        endpoint = DatabusUtilService.getFinalRedirectionURI(selectDatabus.getValue() + "/sparql");
                         break;
                 }
                 log.debug(query);
@@ -191,6 +194,12 @@ public class SearchView extends Div {
             selected_grid.getDataProvider().refreshAll();
         });
 
+        selectDatabus.setLabel("Choose the Databus:");
+        selectDatabus.setItems("https://databus.dbpedia.org", "https://energy.databus.dbpedia.org",
+                "https://dev.databus.dbpedia.org", "https://d8lr.tools.dbpedia.org");
+        selectDatabus.setValue("https://databus.dbpedia.org");
+        selectDatabus.setWidth("100%");
+
         HorizontalLayout buttons = new HorizontalLayout(search_button, clear_selected_button);
 
         HorizontalLayout search_select_hl = new HorizontalLayout(selected_grid, suggestion_grid);
@@ -198,7 +207,7 @@ public class SearchView extends Div {
 
         HorizontalLayout searchGroup = new HorizontalLayout();
         searchGroup.setWidth("100%");
-        searchGroup.add(buttons, radio_buttons_vl);
+        searchGroup.add(buttons, radio_buttons_vl, selectDatabus);
         searchGroup.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.CENTER);
 
         VerticalLayout vl = new VerticalLayout(search_field, search_select_hl, searchGroup, result_grid);
@@ -286,7 +295,7 @@ public class SearchView extends Div {
                 "}";
     }
 
-    private String buildAnnotationQuery(List<String> iris) {
+    private String buildAnnotationQuery(List<String> iris, String databusEndpoint) {
         StringBuilder builder = new StringBuilder();
 
         for (String iri : iris) {
@@ -295,7 +304,7 @@ public class SearchView extends Div {
 
         // adds https://databus.dbpedia.org/system/voc/Collection to possible values for backward compatibility with Databus1.0
 
-        //log.info(query);
+        // log.info(query);
         return "PREFIX dataid: <http://dataid.dbpedia.org/ns/core#>\n" +
                 "PREFIX dct:    <http://purl.org/dc/terms/>\n" +
                 "PREFIX dcat:   <http://www.w3.org/ns/dcat#>\n" +
@@ -311,7 +320,7 @@ public class SearchView extends Div {
                 "    ?s <http://www.w3.org/ns/prov#used> ?id .\n" +
                 builder +
                 "  }  \n" +
-                "  SERVICE <http://databus.dbpedia.org/repo/sparql> {\n" +
+                "  SERVICE <" + databusEndpoint + "> {\n" +
                 "    {\n" +
                 "    \t?dataset a ?type .\n" +
                 "    \t#OPTIONAL { ?dataset dataid:group ?group . }\n" +
@@ -319,7 +328,7 @@ public class SearchView extends Div {
                 "        ?dataset dcat:distribution ?distribution . \n" +
                 "    \t?distribution dataid:file ?id .\n" +
                 "    \t?dataset dct:title ?title .\n" +
-                "    \t?dataset rdfs:comment ?comment .\n" +
+                "    \t?dataset dct:abstract|rdfs:comment ?comment .\n" +
                 "    } UNION {\n" +
                 "\t\tVALUES ?type { dataid:Group dataid:Artifact dataid:Version <https://databus.dbpedia.org/system/voc/Collection> dataid:Collection }\n" +
                 "      \t\n" +
