@@ -14,6 +14,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.io.IOException;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 
 @RestController
@@ -45,6 +47,11 @@ public class AnnotationAPIDemoController {
             if (pathPart != null) sb.append("/").append(pathPart);
         }
         return annotateIdentifier(sb.toString(), content_type, rdf_string);
+    }
+
+    @PutMapping("/submit")
+    ResponseEntity<String> submitContent(@RequestHeader(value = "content-type") String content_type, @RequestParam String id, @RequestBody String rdfString) {
+        return annotateIdentifier(id, content_type, rdfString);
     }
 
     private ResponseEntity<String> annotateIdentifier(String identifier, String content_type, String content) {

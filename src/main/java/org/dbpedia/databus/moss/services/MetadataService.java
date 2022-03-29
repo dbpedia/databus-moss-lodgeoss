@@ -7,6 +7,7 @@ import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.ResourceFactory;
 import org.dbpedia.databus.moss.annotation.SVGBuilder;
 import org.dbpedia.databus.moss.views.annotation.AnnotationURL;
+import org.dbpedia.databus.utils.MossUtilityFunctions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,20 +42,16 @@ public class MetadataService {
     private final File baseDir;
     private final String baseURI;
 
-    private final DatabusUtilService dbFileUtil;
-
     public MetadataService(@Value("${virt.url}") String virtUrl,
                            @Value("${virt.usr}") String virtUsr,
                            @Value("${virt.psw}") String virtPsw,
                            @Value("${file.vol}") String volume,
-                           @Value("${uri.base}") String baseURI,
-                           @Autowired DatabusUtilService dbFileUtil) {
+                           @Value("${uri.base}") String baseURI) {
         this.virtUrl = virtUrl;
         this.virtUsr = virtUsr;
         this.virtPsw = virtPsw;
         this.baseDir = new File(volume);
         this.baseURI = baseURI;
-        this.dbFileUtil = dbFileUtil;
     }
 
 
@@ -67,6 +64,8 @@ public class MetadataService {
     }
 
     public void createAnnotation(String df, List<AnnotationURL> annotationURLS) {
+
+        String databusBase = MossUtilityFunctions.extractBaseFromURL(df);
 
         ModActivityMetadata mam = new ModActivityMetadata(df, "http://mods.tools.dbpedia.org/ns/demo#AnnotationMod");
         mam.addModResult("annotation.ttl", "http://dataid.dbpedia.org/ns/mods/core#wasDerivedFrom");
@@ -87,7 +86,7 @@ public class MetadataService {
                     ResourceFactory.createResource(annotationURL.getUri()));
         }
 
-        String databusFilePath = df.replace(dbFileUtil.DATABUS_BASE, "");
+        String databusFilePath = df.replace(databusBase, "");
         try {
             saveModel(activityModel,databusFilePath,"activity.ttl");
             saveModel(annotationModel,databusFilePath,"annotation.ttl");
@@ -166,6 +165,8 @@ public class MetadataService {
 
     public void submit_model(String df, Model push_model) throws IOException {
 
+        String databusBase = MossUtilityFunctions.extractBaseFromURL(df);
+
         String graph_identifier = "#api-demo";
 
         ModActivityMetadata mam = new ModActivityMetadata(df, "http://mods.tools.dbpedia.org/ns/demo#ApiDemoMod");
@@ -179,7 +180,7 @@ public class MetadataService {
                 ResourceFactory.createResource("https://moss.tools.dbpedia.org/submit-data?dfid=" +
                         URLEncoder.encode(df, StandardCharsets.UTF_8)));
 
-        String databusFilePath = df.replace(dbFileUtil.DATABUS_BASE, "");
+        String databusFilePath = df.replace(databusBase, "");
 
         saveModel(activityModel,databusFilePath,"api-demo-activity.ttl");
         saveModel(push_model,databusFilePath,"api-demo-data.ttl");
@@ -203,7 +204,9 @@ public class MetadataService {
 
     public String get_api_data(String df) {
 
-        String[] id_split = df.replace(dbFileUtil.DATABUS_BASE, "").split("/");
+        String databusBase = MossUtilityFunctions.extractBaseFromURL(df);
+
+        String[] id_split = df.replace(databusBase, "").split("/");
 
         if (id_split.length != 5) {
             log.warn("Error finding data for Databus Identifier " + df);
