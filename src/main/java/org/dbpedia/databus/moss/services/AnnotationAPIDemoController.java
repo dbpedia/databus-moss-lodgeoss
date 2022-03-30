@@ -6,6 +6,7 @@ import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFLanguages;
 import org.apache.jena.riot.RDFParser;
+import org.dbpedia.databus.utils.DatabusUtilFunctions;
 import org.dbpedia.databus.utils.MossUtilityFunctions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,9 +15,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.io.IOException;
-import java.net.URLDecoder;
-import java.nio.charset.StandardCharsets;
-import java.util.Optional;
 
 @RestController
 @RequestMapping(value = "/annotation-api-demo")
@@ -24,30 +22,28 @@ public class AnnotationAPIDemoController {
 
     private final Logger log = LoggerFactory.getLogger(AnnotationAPIDemoController.class);
     private final MetadataService ms;
-    private final DatabusUtilService dbFileUtil;
 
-    public AnnotationAPIDemoController(@Autowired MetadataService ms, @Autowired DatabusUtilService dbFileUtil) {
+    public AnnotationAPIDemoController(@Autowired MetadataService ms) {
         this.ms = ms;
-        this.dbFileUtil = dbFileUtil;
     }
 
-    @PutMapping(value = {"/{publisher}/{group}/{artifact}/{version}/{fileName}", "/{publisher}/{group}/{artifact}/{version}", "/{publisher}/{group}/{artifact}", "/{publisher}/{group}"})
-    ResponseEntity<String> put_jsonld_annotation(
-            @RequestHeader(value = "content-type") String content_type,
-            @PathVariable String publisher,
-            @PathVariable String group,
-            @PathVariable(required = false) String artifact,
-            @PathVariable(required = false) String version,
-            @PathVariable(required = false) String fileName,
-            @RequestBody String rdf_string
-    ) {
-        StringBuilder sb = new StringBuilder(dbFileUtil.DATABUS_BASE + "/" + publisher + "/" + group);
-
-        for (String pathPart : new String[]{artifact, version, fileName}) {
-            if (pathPart != null) sb.append("/").append(pathPart);
-        }
-        return annotateIdentifier(sb.toString(), content_type, rdf_string);
-    }
+//    @PutMapping(value = {"/{publisher}/{group}/{artifact}/{version}/{fileName}", "/{publisher}/{group}/{artifact}/{version}", "/{publisher}/{group}/{artifact}", "/{publisher}/{group}"})
+//    ResponseEntity<String> put_jsonld_annotation(
+//            @RequestHeader(value = "content-type") String content_type,
+//            @PathVariable String publisher,
+//            @PathVariable String group,
+//            @PathVariable(required = false) String artifact,
+//            @PathVariable(required = false) String version,
+//            @PathVariable(required = false) String fileName,
+//            @RequestBody String rdf_string
+//    ) {
+//        StringBuilder sb = new StringBuilder(dbFileUtil.DATABUS_BASE + "/" + publisher + "/" + group);
+//
+//        for (String pathPart : new String[]{artifact, version, fileName}) {
+//            if (pathPart != null) sb.append("/").append(pathPart);
+//        }
+//        return annotateIdentifier(sb.toString(), content_type, rdf_string);
+//    }
 
     @PutMapping("/submit")
     ResponseEntity<String> submitContent(@RequestHeader(value = "content-type") String content_type, @RequestParam String id, @RequestBody String rdfString) {
@@ -75,7 +71,7 @@ public class AnnotationAPIDemoController {
         }
 
 
-        boolean is_id = dbFileUtil.validate(identifier, MossUtilityFunctions.extractBaseFromURL(identifier));
+        boolean is_id = DatabusUtilFunctions.validate(identifier);
 
         if (!is_id) {
             return new ResponseEntity<>("Failed: " + identifier + " is no valid Databus ID" , HttpStatus.BAD_REQUEST);

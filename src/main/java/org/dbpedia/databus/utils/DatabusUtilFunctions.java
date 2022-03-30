@@ -1,13 +1,9 @@
-package org.dbpedia.databus.moss.services;
+package org.dbpedia.databus.utils;
 
-import org.apache.http.impl.client.LaxRedirectStrategy;
 import org.apache.jena.query.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.stereotype.Service;
 
 import java.net.*;
 import java.net.http.HttpClient;
@@ -15,19 +11,13 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.regex.Pattern;
 
-@Service
-public class DatabusUtilService {
+public final class DatabusUtilFunctions {
 
-    static final Logger log = LoggerFactory.getLogger(DatabusUtilService.class);
+    static final Logger log = LoggerFactory.getLogger(DatabusUtilFunctions.class);
 
-    public final String DATABUS_BASE;
+    public static Boolean validate(String databusID) {
 
-    @Autowired
-    public DatabusUtilService(@Value("${databus.base}") String databusBaseUrl) {
-        this.DATABUS_BASE = databusBaseUrl;
-    }
-
-    public Boolean validate(String databusID, String databusBase) {
+        String databusBase = MossUtilityFunctions.extractBaseFromURL(databusID);
 
         if (databusBase == null) {
             return false;
@@ -66,19 +56,21 @@ public class DatabusUtilService {
         }
     }
 
-    public int checkIfValidDatabusId(String databusIri, String databusBase) {
+    public static int checkIfValidDatabusId(String databusID) {
+
+        String databusBase = MossUtilityFunctions.extractBaseFromURL(databusID);
 
         if (databusBase == null) {
             return -1;
         }
 
         String idRegex = "^" + Pattern.quote(databusBase) + "(/[^/]+){1,5}";
-        if (!databusIri.matches(idRegex))
+        if (!databusID.matches(idRegex))
             return 0;
 
         CookieHandler.setDefault(new CookieManager());
         try {
-            URI uri = URI.create(databusIri);
+            URI uri = URI.create(databusID);
             HttpClient client = HttpClient.newHttpClient();
             HttpRequest request = HttpRequest.newBuilder().uri(uri).header("Accept", "application/*").method("HEAD", HttpRequest.BodyPublishers.noBody()).build();
             HttpResponse<Void> response = client.send(request, HttpResponse.BodyHandlers.discarding());

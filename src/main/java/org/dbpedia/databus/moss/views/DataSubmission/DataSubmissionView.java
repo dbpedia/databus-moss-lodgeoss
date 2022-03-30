@@ -20,7 +20,7 @@ import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFLanguages;
 import org.apache.jena.riot.RDFParser;
-import org.dbpedia.databus.moss.services.DatabusUtilService;
+import org.dbpedia.databus.utils.DatabusUtilFunctions;
 import org.dbpedia.databus.moss.services.MetadataService;
 import org.dbpedia.databus.moss.views.main.MainView;
 import org.dbpedia.databus.utils.MossUtilityFunctions;
@@ -44,11 +44,9 @@ public class DataSubmissionView extends Div implements BeforeEnterObserver {
     TextArea data_area = new TextArea();
     RadioButtonGroup<String> rdf_type_selection = new RadioButtonGroup<>();
     Button refreshBTN = new Button();
-    DatabusUtilService dbFileUtil;
 
-    public DataSubmissionView (@Autowired MetadataService ms, @Autowired DatabusUtilService dbFileUtil) {
+    public DataSubmissionView (@Autowired MetadataService ms) {
         this.ms = ms;
-        this.dbFileUtil = dbFileUtil;
         addClassName("submit-data-view");
 
         refreshBTN.setIcon(VaadinIcon.REFRESH.create());
@@ -75,7 +73,7 @@ public class DataSubmissionView extends Div implements BeforeEnterObserver {
         databusIdTF.setWidth("50%");
         databusIdTF.addValueChangeListener(event -> {
             String identifier = event.getValue();
-            int i = dbFileUtil.checkIfValidDatabusId(identifier, MossUtilityFunctions.extractBaseFromURL(identifier));
+            int i = DatabusUtilFunctions.checkIfValidDatabusId(identifier);
             if (i == 1) {
                 databusIdTF.setInvalid(false);
             } else if (i == 0) {
@@ -170,13 +168,13 @@ public class DataSubmissionView extends Div implements BeforeEnterObserver {
         databusIdTF.setPlaceholder(databusFile);
         databusIdTF.setValue(databusFile);
 
-        String turtle_string = ms.get_api_data(databusFile);
+        String turtle_string = ms.fetchAPIData(databusFile);
         data_area.setValue(turtle_string);
         rdf_type_selection.setValue("Turtle");
     }
 
     private void refresh_content() {
-        String turtle_string = ms.get_api_data(databusIdTF.getValue());
+        String turtle_string = ms.fetchAPIData(databusIdTF.getValue());
         data_area.setValue(turtle_string);
         rdf_type_selection.setValue("Turtle");
     }

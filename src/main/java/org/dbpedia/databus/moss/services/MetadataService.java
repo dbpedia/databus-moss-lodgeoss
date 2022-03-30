@@ -10,7 +10,6 @@ import org.dbpedia.databus.moss.views.annotation.AnnotationURL;
 import org.dbpedia.databus.utils.MossUtilityFunctions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import virtuoso.jena.driver.VirtDataset;
@@ -19,9 +18,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.net.HttpURLConnection;
 import java.net.URI;
-import java.net.URL;
 import java.net.URLEncoder;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -29,7 +26,6 @@ import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Pattern;
 
 @Service
 public class MetadataService {
@@ -154,7 +150,6 @@ public class MetadataService {
 
     public File getFile(String databusIdPath, String result) {
         File file = new File(baseDir,databusIdPath+"/"+result);
-        System.out.println(file.getAbsolutePath());
         if(file.exists()) {
             return file;
         } else {
@@ -202,28 +197,47 @@ public class MetadataService {
     }
 
 
-    public String get_api_data(String df) {
+//    public String fetchAPIData(String df) {
+//
+//        String databusBase = MossUtilityFunctions.extractBaseFromURL(df);
+//
+//        String[] id_split = df.replace(databusBase, "").split("/");
+//
+//        if (id_split.length != 5) {
+//            log.warn("Error finding data for Databus Identifier " + df);
+//            return "";
+//        }
+//
+//        String pusblisher = id_split[0];
+//        String group = id_split[1];
+//        String artifact = id_split[2];
+//        String version = id_split[3];
+//        String filename = id_split[4];
+//
+//        try {
+//            HttpClient client = HttpClient.newHttpClient();
+//
+//            HttpRequest req = HttpRequest.newBuilder().uri(
+//                    new URI(String.format("https://moss.tools.dbpedia.org/data/%s/%s/%s/%s/%s/api-demo-data.ttl", pusblisher, group, artifact, version, filename))
+//            ).build();
+//
+//            HttpResponse<String> response = client.send(req, HttpResponse.BodyHandlers.ofString());
+//
+//            return response.body();
+//        } catch (Exception e) {
+//            log.warn("Could not load turtle data for submission page: " + e);
+//            return "";
+//        }
+//    }
 
-        String databusBase = MossUtilityFunctions.extractBaseFromURL(df);
+    public String fetchAPIData(String identifier) {
 
-        String[] id_split = df.replace(databusBase, "").split("/");
-
-        if (id_split.length != 5) {
-            log.warn("Error finding data for Databus Identifier " + df);
-            return "";
-        }
-
-        String pusblisher = id_split[0];
-        String group = id_split[1];
-        String artifact = id_split[2];
-        String version = id_split[3];
-        String filename = id_split[4];
-
+        String uri = String.format("%s/fetch?id=%s&file=api-demo-data.ttl", this.baseURI, URLEncoder.encode(identifier, StandardCharsets.UTF_8));
         try {
             HttpClient client = HttpClient.newHttpClient();
 
             HttpRequest req = HttpRequest.newBuilder().uri(
-                    new URI(String.format("https://moss.tools.dbpedia.org/data/%s/%s/%s/%s/%s/api-demo-data.ttl", pusblisher, group, artifact, version, filename))
+                    new URI(uri)
             ).build();
 
             HttpResponse<String> response = client.send(req, HttpResponse.BodyHandlers.ofString());
@@ -234,6 +248,4 @@ public class MetadataService {
             return "";
         }
     }
-
-
 }

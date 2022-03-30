@@ -19,7 +19,7 @@ import com.vaadin.flow.data.provider.ListDataProvider;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.data.value.ValueChangeMode;
 import com.vaadin.flow.router.*;
-import org.dbpedia.databus.moss.services.DatabusUtilService;
+import org.dbpedia.databus.utils.DatabusUtilFunctions;
 import org.dbpedia.databus.moss.services.MetadataService;
 import org.dbpedia.databus.moss.views.main.MainView;
 import org.dbpedia.databus.utils.*;
@@ -44,11 +44,9 @@ public class AnnotationView extends Div implements BeforeEnterObserver {
     Div versionDiv = new Div();
 
     MetadataService ms;
-    DatabusUtilService dbFileUtil;
 
-    public AnnotationView(@Autowired MetadataService ms, @Autowired DatabusUtilService dbFileUtil) {
+    public AnnotationView(@Autowired MetadataService ms) {
         this.ms = ms;
-        this.dbFileUtil = dbFileUtil;
 
         addClassName("about-view");
 
@@ -60,7 +58,7 @@ public class AnnotationView extends Div implements BeforeEnterObserver {
         databusIdTF.setWidth("50%");
         databusIdTF.addValueChangeListener(event -> {
             String identifier = event.getValue();
-            int i = dbFileUtil.checkIfValidDatabusId(identifier, MossUtilityFunctions.extractBaseFromURL(identifier));
+            int i = DatabusUtilFunctions.checkIfValidDatabusId(identifier);
             if (i == 1) {
                 databusIdTF.setInvalid(false);
             } else if (i == 0) {
@@ -144,7 +142,7 @@ public class AnnotationView extends Div implements BeforeEnterObserver {
         submitBTN.addClickListener(
                 (ComponentEventListener<ClickEvent<Button>>) buttonClickEvent -> {
                     String identifier = databusIdTF.getValue();
-                    if (dbFileUtil.validate(identifier, MossUtilityFunctions.extractBaseFromURL(identifier))
+                    if (DatabusUtilFunctions.validate(identifier)
                     && ! annotationUrls.isEmpty()) {
                         ms.createAnnotation(databusIdTF.getValue(), annotationUrls);
                         updateVersionLink(databusIdTF.getValue());

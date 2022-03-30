@@ -1,6 +1,7 @@
 package org.dbpedia.databus.moss.services;
 
 import org.apache.commons.io.IOUtils;
+import org.dbpedia.databus.utils.MossUtilityFunctions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -32,6 +33,34 @@ public class LinkedDataController {
     ) {
         String databusFilePath = publisher + "/" + group + "/" + artifact + "/" + version + "/" + fileName;
         File file = ms.getFile(databusFilePath,metadata);
+        if(null != file) {
+            try {
+                response.setStatus(200);
+                if(metadata.endsWith(".svg")) {
+                    response.setContentType("image/svg+xml");
+                } else {
+                    response.setContentType("text/plain");
+                }
+                OutputStream os = response.getOutputStream();
+                FileInputStream is = new FileInputStream(file);
+                IOUtils.copy(is,os);
+                is.close();
+                os.close();
+            } catch (IOException ioe) {
+                response.setStatus(500);
+                ioe.printStackTrace();
+            }
+        } else {
+            response.setStatus(404);
+        }
+    }
+
+    @GetMapping("fetch")
+    void getMetadataByID(@RequestParam String id, @RequestParam(name = "file") String metadata, HttpServletResponse response) {
+        String[] pathSegements = id.replace(MossUtilityFunctions.extractBaseFromURL(id), "").split("/");
+
+        File file = ms.getFile(String.join("/", pathSegements), metadata);
+
         if(null != file) {
             try {
                 response.setStatus(200);
