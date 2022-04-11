@@ -21,16 +21,13 @@ import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.router.RouteAlias;
 import org.apache.jena.query.*;
-import org.dbpedia.databus.utils.DatabusUtilFunctions;
+import org.dbpedia.databus.utils.*;
 import org.dbpedia.databus.moss.views.main.MainView;
-import org.dbpedia.databus.utils.LookupFrontendData;
-import org.dbpedia.databus.utils.LookupObject;
-import org.dbpedia.databus.utils.LookupRequester;
-import org.dbpedia.databus.utils.MossUtilityFunctions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.dbpedia.databus.utils.QueryBuilding.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -81,10 +78,15 @@ public class SearchView extends Div {
         search_type_radio_group.setItems("VOID", "Annotations");
         search_type_radio_group.setValue("VOID");
 
-        VerticalLayout radio_buttons_vl = new VerticalLayout();
+        RadioButtonGroup<String> searchAggregationTypeSelect = new RadioButtonGroup<>();
+        searchAggregationTypeSelect.setLabel("Search Aggregation");
+        searchAggregationTypeSelect.setItems(AggregationType.OR.toString(), AggregationType.AND.toString());
+        searchAggregationTypeSelect.setValue(AggregationType.AND.toString());
+
+        HorizontalLayout radio_buttons_hl = new HorizontalLayout();
 
         //radio_buttons_vl.add(type_radio_group, logical_radio_group, search_type_radio_group);
-        radio_buttons_vl.add(search_type_radio_group);
+        radio_buttons_hl.add(search_type_radio_group, searchAggregationTypeSelect);
 
         suggestion_grid.setItems(suggestions);
         suggestion_grid.setWidth("40%");
@@ -164,16 +166,18 @@ public class SearchView extends Div {
             }
             if (!iris.isEmpty()) {
                 result_list.clear();
+                AggregationType aggType = AggregationType.valueOf(searchAggregationTypeSelect.getValue());
                 String query;
                 String endpoint;
                 switch (search_type_radio_group.getValue()) {
                     case "Annotations":
-                        query = buildAnnotationQuery(iris, DatabusUtilFunctions.getFinalRedirectionURI(selectDatabus.getValue() + "/sparql"));
+                        query = QueryBuilding.buildAnnotationQuery(iris, DatabusUtilFunctions.getFinalRedirectionURI(selectDatabus.getValue() + "/sparql"), aggType);
                         endpoint = this.databus_mods_endpoint;
                         break;
                     case "VOID":
                     default:
-                        query = buildVoidQuery(iris);
+                        query = QueryBuilding.buildVoidQuery(iris, aggType);
+                        //System.out.println(query);
                         endpoint = DatabusUtilFunctions.getFinalRedirectionURI(selectDatabus.getValue() + "/sparql");
                         break;
                 }
@@ -196,7 +200,7 @@ public class SearchView extends Div {
         selectDatabus.setItems("https://databus.dbpedia.org", "https://energy.databus.dbpedia.org",
                 "https://dev.databus.dbpedia.org", "https://d8lr.tools.dbpedia.org");
         selectDatabus.setValue("https://databus.dbpedia.org");
-        selectDatabus.setWidth("100%");
+        selectDatabus.setWidth("50%");
 
         HorizontalLayout buttons = new HorizontalLayout(search_button, clear_selected_button);
 
@@ -205,7 +209,7 @@ public class SearchView extends Div {
 
         HorizontalLayout searchGroup = new HorizontalLayout();
         searchGroup.setWidth("100%");
-        searchGroup.add(buttons, radio_buttons_vl, selectDatabus);
+        searchGroup.add(buttons, radio_buttons_hl, selectDatabus);
         searchGroup.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.CENTER);
 
         VerticalLayout vl = new VerticalLayout(search_field, search_select_hl, searchGroup, result_grid);
@@ -252,90 +256,6 @@ public class SearchView extends Div {
                 log.error("Exception:" + e);
             }
         }
-    }
-
-    private String buildVoidQuery(List<String> iris) {
-
-        StringBuilder builder = new StringBuilder();
-
-        for (int i= 0; i < iris.size(); i++) {
-            builder.append(" ?voidStats ?partition").append(i).append(" [\n").append("   ?p").append(i).append(" <").append(iris.get(i)).append("> ;\n").append("    void:triples ?triples").append(i).append(" \n").append(" ] .");
-        }
-
-        //log.info(queryString);
-
-        return "PREFIX foaf: <http://xmlns.com/foaf/0.1/>\n"+
-                "PREFIX void: <http://rdfs.org/ns/void#>\n"+
-                "PREFIX dataid: <http://dataid.dbpedia.org/ns/core#>\n"+
-                "PREFIX dct:    <http://purl.org/dc/terms/>\n"+
-                "PREFIX dcat:   <http://www.w3.org/ns/dcat#>\n"+
-                "PREFIX db:     <https://databus.dbpedia.org/>\n"+
-                "PREFIX rdf:    <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n"+
-                "PREFIX rdfs:   <http://www.w3.org/2000/01/rdf-schema#>\n"+
-                "PREFIX mods:   <http://mods.tools.dbpedia.org/>\n"+
-                "\n"+
-                "SELECT ?type ?title ?comment ?databusPage ?voidStats ?id {\n"+
-                " SERVICE <https://mods.tools.dbpedia.org/sparql> {\n"+
-                builder +
-                "  \n"+
-                " ?s <http://www.w3.org/ns/prov#used> ?id . # energy file\n"+
-                " ?s <http://www.w3.org/ns/prov#generated> ?voidStats . # automatic content description\n"+
-                "  \n"+
-                " }\n"+
-                "     ?dataset a ?type .\n" +
-                "     ?dataset dataid:group ?group .\n"+
-                "     ?dataset dcat:distribution ?distribution .\n"+
-                "     ?dataset dataid:version ?databusPage .\n"+
-                "     ?dataset dct:title ?title .\n"+
-                "     ?dataset rdfs:comment ?comment .\n"+
-                "     ?distribution dataid:file ?id .\n"+
-                "\n"+
-                "}";
-    }
-
-    private String buildAnnotationQuery(List<String> iris, String databusEndpoint) {
-        StringBuilder builder = new StringBuilder();
-
-        for (String iri : iris) {
-            builder.append("  ?file <http://purl.org/dc/elements/1.1/subject> <").append(iri).append("> .\n");
-        }
-
-        // adds https://databus.dbpedia.org/system/voc/Collection to possible values for backward compatibility with Databus1.0
-
-        // log.info(query);
-        return "PREFIX dataid: <http://dataid.dbpedia.org/ns/core#>\n" +
-                "PREFIX dct:    <http://purl.org/dc/terms/>\n" +
-                "PREFIX dcat:   <http://www.w3.org/ns/dcat#>\n" +
-                "PREFIX db:     <https://databus.dbpedia.org/>\n" +
-                "PREFIX rdf:    <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n" +
-                "PREFIX rdfs:   <http://www.w3.org/2000/01/rdf-schema#>\n" +
-                "PREFIX mods:   <http://mods.tools.dbpedia.org/>\n" +
-                "\n" +
-                "\n" +
-                "SELECT ?type ?title ?comment ?id ?databusPage {\n" +
-                "  GRAPH ?g {\n" +
-                "    ?s a <http://mods.tools.dbpedia.org/ns/demo#AnnotationMod> .\n" +
-                "    ?s <http://www.w3.org/ns/prov#used> ?id .\n" +
-                builder +
-                "  }  \n" +
-                "  SERVICE <" + databusEndpoint + "> {\n" +
-                "    {\n" +
-                "    \t?dataset a ?type .\n" +
-                "    \t#OPTIONAL { ?dataset dataid:group ?group . }\n" +
-                "    \tOPTIONAL { ?dataset dataid:version ?databusPage . }\n" +
-                "        ?dataset dcat:distribution ?distribution . \n" +
-                "    \t?distribution dataid:file ?id .\n" +
-                "    \t?dataset dct:title ?title .\n" +
-                "    \t?dataset dct:abstract|rdfs:comment ?comment .\n" +
-                "    } UNION {\n" +
-                "\t\tVALUES ?type { dataid:Group dataid:Artifact dataid:Version <https://databus.dbpedia.org/system/voc/Collection> dataid:Collection }\n" +
-                "      \t\n" +
-                "      \t?id a ?type .\n" +
-                "      \t?id dct:title ?title .\n" +
-                "      \t?id dct:abstract ?comment .\n" +
-                "    }\n" +
-                "  }\n" +
-                "}";
     }
 
 }
