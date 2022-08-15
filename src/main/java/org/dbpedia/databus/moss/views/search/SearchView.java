@@ -30,6 +30,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.dbpedia.databus.utils.QueryBuilding.*;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 @Route(value = "search", layout = MainView.class)
@@ -43,22 +44,15 @@ public class SearchView extends Div {
     private final Grid<LookupFrontendData> selected_grid = new Grid<>();
     private final Grid<LookupFrontendData> suggestion_grid = new Grid<>();
     private final Select<String> selectDatabus = new Select<>();
-
     private final Grid<SearchResult> result_grid = new Grid<>();
-
-    private final String databus_sparql_endpoint;
-
     private final String databus_mods_endpoint;
-
     private final List<SearchResult> result_list = new ArrayList<>();
-
     private final Logger log = LoggerFactory.getLogger(SearchView.class);
 
     @Autowired
     public SearchView(@Value("${databus.file.endpoint}") String databus_file_endpoint, @Value("${databus.mods.endpoint}") String databus_mods_endpoint) {
 
         this.databus_mods_endpoint = databus_mods_endpoint;
-        this.databus_sparql_endpoint = databus_file_endpoint;
 
         addClassName("search-view");
         add(new H1("Databus Metadata Overlay Search System"));
@@ -75,8 +69,8 @@ public class SearchView extends Div {
 
         RadioButtonGroup<String> search_type_radio_group = new RadioButtonGroup<>();
         search_type_radio_group.setLabel("Search Type");
-        search_type_radio_group.setItems("VOID", "Annotations");
-        search_type_radio_group.setValue("VOID");
+        search_type_radio_group.setItems(Arrays.stream(SearchType.values()).map(Enum::toString));
+        search_type_radio_group.setValue(SearchType.OEP_Metadata.toString());
 
         RadioButtonGroup<String> searchAggregationTypeSelect = new RadioButtonGroup<>();
         searchAggregationTypeSelect.setLabel("Search Aggregation");
@@ -169,14 +163,20 @@ public class SearchView extends Div {
                 AggregationType aggType = AggregationType.valueOf(searchAggregationTypeSelect.getValue());
                 String query;
                 String endpoint;
-                switch (search_type_radio_group.getValue()) {
-                    case "Annotations":
+                SearchType st = SearchType.valueOf(search_type_radio_group.getValue());
+                switch (st) {
+                    case Annotations:
                         query = QueryBuilding.buildAnnotationQuery(iris, DatabusUtilFunctions.getFinalRedirectionURI(selectDatabus.getValue() + "/sparql"), aggType);
                         endpoint = this.databus_mods_endpoint;
                         break;
-                    case "VOID":
-                    default:
+                    case VOID:
                         query = QueryBuilding.buildVoidQuery(iris, aggType);
+                        //System.out.println(query);
+                        endpoint = DatabusUtilFunctions.getFinalRedirectionURI(selectDatabus.getValue() + "/sparql");
+                        break;
+                    case OEP_Metadata:
+                    default:
+                        query = QueryBuilding.buildOEPMetadataQuery(iris, aggType);
                         //System.out.println(query);
                         endpoint = DatabusUtilFunctions.getFinalRedirectionURI(selectDatabus.getValue() + "/sparql");
                         break;
