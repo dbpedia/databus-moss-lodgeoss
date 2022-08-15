@@ -4,6 +4,58 @@ import java.util.List;
 
 public final class QueryBuilding {
 
+
+    private static String buildQuery(String modsPart) {
+
+        return "PREFIX foaf: <http://xmlns.com/foaf/0.1/>\n" +
+                "PREFIX void: <http://rdfs.org/ns/void#>\n" +
+                "PREFIX dataid: <http://dataid.dbpedia.org/ns/core#>\n" +
+                "PREFIX dct:    <http://purl.org/dc/terms/>\n" +
+                "PREFIX dcat:   <http://www.w3.org/ns/dcat#>\n" +
+                "PREFIX db:     <https://databus.dbpedia.org/>\n" +
+                "PREFIX rdf:    <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n" +
+                "PREFIX rdfs:   <http://www.w3.org/2000/01/rdf-schema#>\n" +
+                "PREFIX mods:   <http://mods.tools.dbpedia.org/>\n" +
+                "PREFIX csvw: <http://www.w3.org/ns/csvw#>\n" +
+                "PREFIX prov: <http://www.w3.org/ns/prov#>\n" +
+                "\n" +
+                "SELECT DISTINCT ?type ?title ?comment ?id ?versionURI ?annotation {\n" +
+                modsPart +
+                "SERVICE <https://energy.databus.dbpedia.org/sparql> {\n" +
+                "    { ?dataset a ?type .\n" +
+                "    \t#OPTIONAL { ?dataset dataid:group ?group . }\n" +
+                "    \tOPTIONAL { ?dataset dataid:version ?versionURI . }\n" +
+                "        ?dataset dcat:distribution ?distribution . \n" +
+                "    \t?distribution dataid:file ?id .\n" +
+                "    \t?dataset dct:title ?title .\n" +
+                "    \t?dataset dct:abstract|rdfs:comment ?comment .\n" +
+                "    } UNION {\n" +
+                "\t\tVALUES ?type { dataid:Group dataid:Version <https://databus.dbpedia.org/system/voc/Collection> dataid:Collection }\n" +
+                "      \t?id a ?type .\n" +
+                "      \t?id dct:title ?title .\n" +
+                "      \t?id dct:abstract ?comment .\n" +
+                "  } UNION {\n" +
+                "  \t?id a ?type .\n" +
+                "    { \n" +
+                "\t\t# Selects the latest version\n" +
+                "\t\tSELECT DISTINCT ?art (MAX(?v) as ?latestVersion) WHERE {\n" +
+                "\t\t\t  ?dataset dataid:artifact ?id.\n" +
+                "\t\t\t  ?dataset dcat:distribution ?distribution .\n" +
+                "\t\t\t  ?dataset dct:hasVersion ?v .\n" +
+                "\t\t\t} \n" +
+                "\t}\n" +
+                "    ?dataset dataid:artifact ?id .\n" +
+                "    ?dataset dct:hasVersion ?latestVersion .\n" +
+                "    #OPTIONAL { ?dataset dataid:group ?group . }\n" +
+                "    OPTIONAL { ?dataset dataid:version ?versionURI . }\n" +
+                "    ?dataset dcat:distribution ?distribution . \n" +
+                "    ?dataset dct:title ?title .\n" +
+                "    ?dataset dct:abstract|rdfs:comment ?comment .\n" +
+                "  }\n" +
+                "  }" +
+                "}";
+    }
+
     public static String buildAnnotationQuery(List<String> iris, String databusEndpoint, AggregationType aggType) {
 
         StringBuilder modsPart = new StringBuilder();
@@ -124,6 +176,7 @@ public final class QueryBuilding {
     public static String buildOEPMetadataQuery(List<String> iris, AggregationType aggType) {
 
         StringBuilder modsPart = new StringBuilder();
+        modsPart.append("\t\tGraph ?g {\n" + "\t\t\t?metadata csvw:table ?table .\n" + "\t\t\t?table csvw:tableSchema/csvw:column ?column .\n");
 
         if (aggType == AggregationType.AND) {
             for (String iri: iris) {
@@ -138,43 +191,11 @@ public final class QueryBuilding {
             modsPart.append("\t\t\t?column <http://purl.org/goodrelations/v1#valueReference> ?topic .");
         }
 
-        String query = "PREFIX foaf: <http://xmlns.com/foaf/0.1/>\n" +
-                "PREFIX void: <http://rdfs.org/ns/void#>\n" +
-                "PREFIX dataid: <http://dataid.dbpedia.org/ns/core#>\n" +
-                "PREFIX dct:    <http://purl.org/dc/terms/>\n" +
-                "PREFIX dcat:   <http://www.w3.org/ns/dcat#>\n" +
-                "PREFIX db:     <https://databus.dbpedia.org/>\n" +
-                "PREFIX rdf:    <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n" +
-                "PREFIX rdfs:   <http://www.w3.org/2000/01/rdf-schema#>\n" +
-                "PREFIX mods:   <http://mods.tools.dbpedia.org/>\n" +
-                "PREFIX csvw: <http://www.w3.org/ns/csvw#>\n" +
-                "PREFIX prov: <http://www.w3.org/ns/prov#>\n" +
-                "\n" +
-                "SELECT ?type ?title ?comment ?databusPage ?voidStats ?id {\n" +
-                "\tSERVICE <https://mods.tools.dbpedia.org/sparql> {\n" +
-                "\t\tGraph ?g {\n" +
-                "\t\t\t?metadata csvw:table ?table .\n" +
-                "\t\t\t?table csvw:tableSchema/csvw:column ?column .\n" +
-                modsPart +
-                "\t\t\t?activity a <http://mods.tools.dbpedia.org/ns/demo#ApiDemoMod>; \n" +
+        modsPart.append("\t\t\t?activity a <http://mods.tools.dbpedia.org/ns/demo#ApiDemoMod>; \n" +
                 "\t\t\t\tprov:used ?id .\n" +
-                "\t\t}" +
-                "\t}" +
-                "    {\n" +
-                "    \t?dataset a ?type .\n" +
-                "    \t#OPTIONAL { ?dataset dataid:group ?group . }\n" +
-                "    \tOPTIONAL { ?dataset dataid:version ?versionURI . }\n" +
-                "        ?dataset dcat:distribution ?distribution . \n" +
-                "    \t?distribution dataid:file ?id .\n" +
-                "    \t?dataset dct:title ?title .\n" +
-                "    \t?dataset dct:abstract|rdfs:comment ?comment .\n" +
-                "    } UNION {\n" +
-                "\t\tVALUES ?type { dataid:Group dataid:Artifact dataid:Version <https://databus.dbpedia.org/system/voc/Collection> dataid:Collection }\n" +
-                "      \t?id a ?type .\n" +
-                "      \t?id dct:title ?title .\n" +
-                "      \t?id dct:abstract ?comment .\n" +
-                "    }\n" +
-                "}";
+                "\t\t}");
+
+        String query = buildQuery(modsPart.toString());
 
         System.out.println(query);
 
