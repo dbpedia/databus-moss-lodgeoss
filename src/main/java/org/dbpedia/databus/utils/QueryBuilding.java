@@ -38,7 +38,7 @@ public final class QueryBuilding {
                 "  \t?id a ?type .\n" +
                 "    { \n" +
                 "\t\t# Selects the latest version\n" +
-                "\t\tSELECT DISTINCT ?art (MAX(?v) as ?latestVersion) WHERE {\n" +
+                "\t\tSELECT DISTINCT (MAX(?v) as ?latestVersion) WHERE {\n" +
                 "\t\t\t  ?dataset dataid:artifact ?id.\n" +
                 "\t\t\t  ?dataset dcat:distribution ?distribution .\n" +
                 "\t\t\t  ?dataset dct:hasVersion ?v .\n" +
@@ -195,11 +195,7 @@ public final class QueryBuilding {
                 "\t\t\t\tprov:used ?id .\n" +
                 "\t\t}");
 
-        String query = buildQuery(modsPart.toString());
-
-        System.out.println(query);
-
-        return query;
+        return buildQuery(modsPart.toString());
     }
 
 }

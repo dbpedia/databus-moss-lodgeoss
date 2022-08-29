@@ -20,6 +20,7 @@ import com.vaadin.flow.data.value.ValueChangeMode;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.router.RouteAlias;
+import org.apache.jena.base.Sys;
 import org.apache.jena.query.*;
 import org.dbpedia.databus.utils.*;
 import org.dbpedia.databus.moss.views.main.MainView;
@@ -171,19 +172,16 @@ public class SearchView extends Div {
                         break;
                     case VOID:
                         query = QueryBuilding.buildVoidQuery(iris, aggType);
-                        //System.out.println(query);
                         endpoint = DatabusUtilFunctions.getFinalRedirectionURI(selectDatabus.getValue() + "/sparql");
                         break;
                     case OEP_Metadata:
                     default:
                         query = QueryBuilding.buildOEPMetadataQuery(iris, aggType);
-                        //System.out.println(query);
-                        endpoint = DatabusUtilFunctions.getFinalRedirectionURI(selectDatabus.getValue() + "/sparql");
+                        endpoint = this.databus_mods_endpoint;
                         break;
                 }
-                log.debug(query);
+                log.debug("Query sent: " + query);
                 List<SearchResult> search_results = sendSPARQL(query, endpoint);
-
                 result_list.addAll(search_results);
                 result_grid.getDataProvider().refreshAll();
             }
@@ -218,7 +216,7 @@ public class SearchView extends Div {
 
     private List<SearchResult> sendSPARQL(String query, String endpoint) {
         Query q = QueryFactory.create(query);
-        //log.debug("Send query to :" + endpoint + "\n" + q.toString());
+        log.debug("Send query to :" + endpoint + "\n" + q.toString());
         List<SearchResult> result_list = new ArrayList<>();
         try (QueryExecution qexec = QueryExecutionFactory.sparqlService(endpoint, q)) {
             ResultSet rs = qexec.execSelect();
@@ -231,7 +229,7 @@ public class SearchView extends Div {
                 result_list.add(row);
             }
         }
-        log.debug("Got result sized:\n" + result_list.size());
+        log.debug("Got result sized: " + result_list.size());
         return result_list;
     }
 
