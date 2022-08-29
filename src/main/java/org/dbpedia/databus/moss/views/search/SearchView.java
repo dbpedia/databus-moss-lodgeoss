@@ -163,25 +163,25 @@ public class SearchView extends Div {
                 result_list.clear();
                 AggregationType aggType = AggregationType.valueOf(searchAggregationTypeSelect.getValue());
                 String query;
-                String endpoint;
+                String sparqlEndpoint;
                 SearchType st = SearchType.valueOf(search_type_radio_group.getValue());
                 switch (st) {
                     case Annotations:
                         query = QueryBuilding.buildAnnotationQuery(iris, DatabusUtilFunctions.getFinalRedirectionURI(selectDatabus.getValue() + "/sparql"), aggType);
-                        endpoint = this.databus_mods_endpoint;
+                        sparqlEndpoint = this.databus_mods_endpoint;
                         break;
                     case VOID:
                         query = QueryBuilding.buildVoidQuery(iris, aggType);
-                        endpoint = DatabusUtilFunctions.getFinalRedirectionURI(selectDatabus.getValue() + "/sparql");
+                        sparqlEndpoint = DatabusUtilFunctions.getFinalRedirectionURI(selectDatabus.getValue() + "/sparql");
                         break;
                     case OEP_Metadata:
                     default:
-                        query = QueryBuilding.buildOEPMetadataQuery(iris, aggType);
-                        endpoint = this.databus_mods_endpoint;
+                        sparqlEndpoint = this.databus_mods_endpoint;
+                        query = QueryBuilding.buildOEPMetadataQuery(iris, DatabusUtilFunctions.getFinalRedirectionURI(selectDatabus.getValue() + "/sparql"), aggType);
                         break;
                 }
                 log.debug("Query sent: " + query);
-                List<SearchResult> search_results = sendSPARQL(query, endpoint);
+                List<SearchResult> search_results = sendSPARQL(query, sparqlEndpoint);
                 result_list.addAll(search_results);
                 result_grid.getDataProvider().refreshAll();
             }
