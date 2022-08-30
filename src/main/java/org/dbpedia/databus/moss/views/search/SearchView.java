@@ -197,7 +197,7 @@ public class SearchView extends Div {
         selectDatabus.setLabel("Choose the Databus:");
         selectDatabus.setItems("https://databus.dbpedia.org", "https://energy.databus.dbpedia.org",
                 "https://dev.databus.dbpedia.org", "https://d8lr.tools.dbpedia.org");
-        selectDatabus.setValue("https://databus.dbpedia.org");
+        selectDatabus.setValue("https://energy.databus.dbpedia.org");
         selectDatabus.setWidth("50%");
 
         HorizontalLayout buttons = new HorizontalLayout(search_button, clear_selected_button);
