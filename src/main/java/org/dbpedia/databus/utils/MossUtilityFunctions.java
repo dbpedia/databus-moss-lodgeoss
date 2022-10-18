@@ -6,6 +6,7 @@ import java.io.Reader;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.io.Writer;
+import java.time.LocalDate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -13,7 +14,6 @@ import com.atomgraph.etl.json.JsonStreamRDFWriter;
 import org.apache.jena.riot.system.StreamRDFLib;
 
 public final class MossUtilityFunctions {
-
 
     public static final Pattern baseRegex = Pattern.compile("^(https?://[^/]+)");
 
@@ -54,4 +54,18 @@ public final class MossUtilityFunctions {
         return result;
     }
 
+    public static boolean dateIsInRange(LocalDate date, LocalDate startDate, LocalDate endDate) {
+
+        if (startDate != null && endDate != null) {
+            // if both set ->
+        } else if (startDate == null && endDate != null) {
+
+        } else if (startDate != null) {
+
+        } else {
+            // if both not set -> everything is in range
+            return true;
+        }
+        return false;
+    }
 }

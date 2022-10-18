@@ -2,6 +2,7 @@ package org.dbpedia.databus.moss.views.search;
 
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.datepicker.DatePicker;
 import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.Div;
@@ -12,15 +13,16 @@ import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.radiobutton.RadioButtonGroup;
+import com.vaadin.flow.component.radiobutton.RadioGroupVariant;
 import com.vaadin.flow.component.select.Select;
 import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.data.provider.DataProvider;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.data.renderer.TemplateRenderer;
 import com.vaadin.flow.data.value.ValueChangeMode;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.router.RouteAlias;
-import org.apache.jena.base.Sys;
 import org.apache.jena.query.*;
 import org.dbpedia.databus.utils.*;
 import org.dbpedia.databus.moss.views.main.MainView;
@@ -28,8 +30,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.dbpedia.databus.utils.QueryBuilding.*;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -44,6 +46,10 @@ public class SearchView extends Div {
     private final List<LookupFrontendData> selected_objects = new ArrayList<>();
     private final Grid<LookupFrontendData> selected_grid = new Grid<>();
     private final Grid<LookupFrontendData> suggestion_grid = new Grid<>();
+
+    private final RadioButtonGroup<String> search_type_radio_group = new RadioButtonGroup<>();
+
+    private final RadioButtonGroup<String> searchAggregationTypeSelect = new RadioButtonGroup<>();
     private final Select<String> selectDatabus = new Select<>();
     private final Grid<SearchResult> result_grid = new Grid<>();
     private final String databus_mods_endpoint;
@@ -68,15 +74,15 @@ public class SearchView extends Div {
 //        logical_radio_group.setItems("AND", "OR");
 //        logical_radio_group.setValue("AND");
 
-        RadioButtonGroup<String> search_type_radio_group = new RadioButtonGroup<>();
         search_type_radio_group.setLabel("Search Type");
         search_type_radio_group.setItems(Arrays.stream(SearchType.values()).map(Enum::toString));
         search_type_radio_group.setValue(SearchType.OEP_Metadata.toString());
+        search_type_radio_group.addThemeVariants(RadioGroupVariant.LUMO_VERTICAL);
 
-        RadioButtonGroup<String> searchAggregationTypeSelect = new RadioButtonGroup<>();
         searchAggregationTypeSelect.setLabel("Search Aggregation");
         searchAggregationTypeSelect.setItems(AggregationType.OR.toString(), AggregationType.AND.toString());
         searchAggregationTypeSelect.setValue(AggregationType.AND.toString());
+        //searchAggregationTypeSelect.addThemeVariants(RadioGroupVariant.LUMO_VERTICAL);
 
         HorizontalLayout radio_buttons_hl = new HorizontalLayout();
 
@@ -154,38 +160,7 @@ public class SearchView extends Div {
         Button search_button = new Button("Search");
         search_button.setIcon(new Icon(VaadinIcon.SEARCH));
         search_button.addThemeVariants(ButtonVariant.LUMO_CONTRAST);
-        search_button.addClickListener(buttonClickEvent -> {
-            List<String> iris = new ArrayList<>();
-            for (LookupFrontendData lfd : selected_objects) {
-                iris.add(lfd.getResource());
-            }
-            if (!iris.isEmpty()) {
-                result_list.clear();
-                AggregationType aggType = AggregationType.valueOf(searchAggregationTypeSelect.getValue());
-                String query;
-                String sparqlEndpoint;
-                SearchType st = SearchType.valueOf(search_type_radio_group.getValue());
-                switch (st) {
-                    case Annotations:
-                        query = QueryBuilding.buildAnnotationQuery(iris, DatabusUtilFunctions.getFinalRedirectionURI(selectDatabus.getValue() + "/sparql"), aggType);
-                        sparqlEndpoint = this.databus_mods_endpoint;
-                        break;
-                    case VOID:
-                        query = QueryBuilding.buildVoidQuery(iris, aggType);
-                        sparqlEndpoint = DatabusUtilFunctions.getFinalRedirectionURI(selectDatabus.getValue() + "/sparql");
-                        break;
-                    case OEP_Metadata:
-                    default:
-                        sparqlEndpoint = this.databus_mods_endpoint;
-                        query = QueryBuilding.buildOEPMetadataQuery(iris, DatabusUtilFunctions.getFinalRedirectionURI(selectDatabus.getValue() + "/sparql"), aggType);
-                        break;
-                }
-                log.debug("Query sent: " + query);
-                List<SearchResult> search_results = sendSPARQL(query, sparqlEndpoint);
-                result_list.addAll(search_results);
-                result_grid.getDataProvider().refreshAll();
-            }
-        });
+        search_button.addClickListener(clickEvent -> runSearch());
 
         Button clear_selected_button = new Button("Clear Selection");
         clear_selected_button.addThemeVariants(ButtonVariant.LUMO_CONTRAST);
@@ -205,9 +180,14 @@ public class SearchView extends Div {
         HorizontalLayout search_select_hl = new HorizontalLayout(selected_grid, suggestion_grid);
         search_select_hl.setWidth("100%");
 
+        // the date range picker
+
+        DatePicker startDate = new DatePicker("Start date");
+        DatePicker endDate = new DatePicker("End date");
+
         HorizontalLayout searchGroup = new HorizontalLayout();
         searchGroup.setWidth("100%");
-        searchGroup.add(buttons, radio_buttons_hl, selectDatabus);
+        searchGroup.add(buttons, radio_buttons_hl, selectDatabus, new VerticalLayout(startDate, endDate));
         searchGroup.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.CENTER);
 
         VerticalLayout vl = new VerticalLayout(search_field, search_select_hl, searchGroup, result_grid);
@@ -233,6 +213,43 @@ public class SearchView extends Div {
         return result_list;
     }
 
+
+
+
+    private void runSearch() {
+        List<String> iris = new ArrayList<>();
+        for (LookupFrontendData lfd : selected_objects) {
+            iris.add(lfd.getResource());
+        }
+        if (!iris.isEmpty()) {
+            result_list.clear();
+            AggregationType aggType = AggregationType.valueOf(searchAggregationTypeSelect.getValue());
+            String query;
+            String sparqlEndpoint;
+            SearchType st = SearchType.valueOf(search_type_radio_group.getValue());
+            switch (st) {
+                case Annotations:
+                    query = QueryBuilding.buildAnnotationQuery(iris, DatabusUtilFunctions.getFinalRedirectionURI(selectDatabus.getValue() + "/sparql"), aggType);
+                    sparqlEndpoint = this.databus_mods_endpoint;
+                    break;
+                case VOID:
+                    query = QueryBuilding.buildVoidQuery(iris, aggType);
+                    sparqlEndpoint = DatabusUtilFunctions.getFinalRedirectionURI(selectDatabus.getValue() + "/sparql");
+                    break;
+                case OEP_Metadata:
+                default:
+                    sparqlEndpoint = this.databus_mods_endpoint;
+                    query = QueryBuilding.buildOEPMetadataQuery(iris, DatabusUtilFunctions.getFinalRedirectionURI(selectDatabus.getValue() + "/sparql"), aggType);
+                    break;
+            }
+            log.debug("Query sent: " + query);
+            System.out.println(query);
+            List<SearchResult> search_results = sendSPARQL(query, sparqlEndpoint);
+            result_list.addAll(search_results);
+            result_grid.getDataProvider().refreshAll();
+        }
+    }
+
     private void updateSuggestions(String query) {
         suggestions.clear();
         List<LookupObject> search_result;
@@ -254,6 +271,11 @@ public class SearchView extends Div {
                 log.error("Exception:" + e);
             }
         }
+    }
+
+    private void filterResultsByDate(LocalDate filterStartDate, LocalDate filterEndDate) {
+
+        result_grid.getDataProvider().;
     }
 
 }

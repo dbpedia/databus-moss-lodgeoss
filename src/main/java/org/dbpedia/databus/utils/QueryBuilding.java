@@ -18,8 +18,10 @@ public final class QueryBuilding {
                 "PREFIX mods:   <http://mods.tools.dbpedia.org/>\n" +
                 "PREFIX csvw: <http://www.w3.org/ns/csvw#>\n" +
                 "PREFIX prov: <http://www.w3.org/ns/prov#>\n" +
+                "PREFIX time: <http://www.w3.org/2006/time#>\n" +
+                "PREFIX dbo: <https://dbpedia.org/ontology/>\n" +
                 "\n" +
-                "SELECT DISTINCT ?type ?title ?comment ?id ?versionURI ?annotation {\n" +
+                "SELECT DISTINCT ?type ?title ?comment ?id ?versionURI ?startDateTime ?endDateTime {\n" +
                 modsPart +
                 "SERVICE <" + databusEndpoint + "> {\n" +
                 "    { ?dataset a ?type .\n" +
@@ -166,6 +168,11 @@ public final class QueryBuilding {
 
         modsPart.append("\t\t\t?activity a <http://mods.tools.dbpedia.org/ns/demo#ApiDemoMod>; \n" +
                 "\t\t\t\tprov:used ?id .\n" +
+                "\t\t\tOPTIONAL {\n" +
+                "\t\t\t\t?metadata time:hasTemporalDuration/time:hasDateTimeDescription ?timeDesc .\n" +
+                "\t\t\t\t?timeDesc dbo:startDateTimo ?startDateTime;\n" +
+                "\t\t\t\t\tdbo:endDateTimo ?endDateTime .\n" +
+                "\t\t\t}" +
                 "\t\t}");
 
         return buildQuery(modsPart.toString(), databusEndpoint);

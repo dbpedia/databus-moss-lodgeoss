@@ -2,9 +2,13 @@ package org.dbpedia.databus.moss.views.search;
 
 
 import org.apache.jena.query.QuerySolution;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
+import java.time.OffsetDateTime;
+import java.time.format.DateTimeFormatter;
 
 enum IDType {
     COLLECTION,
@@ -14,14 +18,26 @@ enum IDType {
     FILE,
 }
 
-public class SearchResult {
+public final class SearchResult {
 
     public IDType type;
     public String databusPage;
     public String databusID;
     public String title;
     public String comment;
+    public String startDate;
+    public String endDate;
 
+
+    public SearchResult(IDType type, String databusPage, String title, String databusID, String comment, String startDateString, String endDateString) {
+        this.type = type;
+        this.databusPage = databusPage;
+        this.title = title;
+        this.databusID = databusID;
+        this.comment = comment;
+        this.startDate = startDateString;
+        this.endDate = endDateString;
+    }
 
     public SearchResult(IDType type, String databusPage, String title, String databusID, String comment) {
         this.type = type;
@@ -29,14 +45,12 @@ public class SearchResult {
         this.title = title;
         this.databusID = databusID;
         this.comment = comment;
+        this.startDate = null;
+        this.endDate = null;
     }
 
     public IDType getType() {
         return type;
-    }
-
-    public void setType(IDType type) {
-        this.type = type;
     }
 
     public String getDatabusFileUri() {
@@ -70,7 +84,23 @@ public class SearchResult {
     public void setComment(String comment) {
         this.comment = comment;
     }
-    
+
+    public String getStartDate() {
+        return startDate;
+    }
+
+    public String getEndDate() {
+        return endDate;
+    }
+
+    public LocalDate getStartDateLocalDate() {
+        return OffsetDateTime.parse(this.startDate).toLocalDate();
+    }
+
+    public LocalDate getEndDateLocalDate() {
+        return OffsetDateTime.parse(this.endDate).toLocalDate();
+    }
+
     public String getColorCode() {
         String color;
         switch (this.type) {
@@ -99,8 +129,11 @@ public class SearchResult {
         IDType type = getIDTypeFromClass(qs.get("type").toString());
         String title = URLDecoder.decode(qs.get("title").toString(), StandardCharsets.UTF_8);
         String comment = URLDecoder.decode(qs.get("comment").toString(), StandardCharsets.UTF_8);
+        String startDateString = qs.contains("startDateTime") ? qs.get("startDateTime").toString() : "";
+        String endDateString = qs.contains("endDateTime") ? qs.get("endDateTime").toString() : "";
 
-        return new SearchResult(type, databusPage, title, identifier, comment);
+
+        return new SearchResult(type, databusPage, title, identifier, comment, startDateString, endDateString);
     }
 
     private static IDType getIDTypeFromClass(String classURI) {
