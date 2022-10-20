@@ -94,11 +94,19 @@ public final class SearchResult {
     }
 
     public LocalDate getStartDateLocalDate() {
-        return OffsetDateTime.parse(this.startDate).toLocalDate();
+        if (this.startDate.equals("")) {
+            return null;
+        } else {
+            return OffsetDateTime.parse(this.startDate).toLocalDate();
+        }
     }
 
     public LocalDate getEndDateLocalDate() {
-        return OffsetDateTime.parse(this.endDate).toLocalDate();
+        if (this.endDate.equals("")) {
+            return null;
+        } else {
+            return OffsetDateTime.parse(this.endDate).toLocalDate();
+        }
     }
 
     public String getColorCode() {
@@ -162,12 +170,14 @@ public final class SearchResult {
 
     public boolean isInRange(LocalDate startDate, LocalDate endDate) {
 
-        if (this.endDate.equals("") || this.startDate.equals("")) {
-            return false;
-        }
 
         LocalDate selfStartDate = this.getStartDateLocalDate();
         LocalDate selfEndDate = this.getEndDateLocalDate();
+
+        // if there is no date range -> is always not in range
+        if (selfStartDate == null || selfEndDate == null) {
+            return false;
+        }
 
         if (startDate == null) {
             return selfStartDate.isBefore(endDate);

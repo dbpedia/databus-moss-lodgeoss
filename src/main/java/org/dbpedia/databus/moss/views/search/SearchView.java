@@ -151,6 +151,8 @@ public class SearchView extends Div {
         result_grid.addColumn(TemplateRenderer.<SearchResult>of("<a href=\"[[item.idUri]]\" target='_top'>[[item.idUri]]</a>").withProperty("idUri", SearchResult::getDatabusFileUri)).setHeader("Download");
         result_grid.addColumn(SearchResult::getComment).setHeader("Comment");
         result_grid.addColumn(searchResult -> searchResult.getType().toString()).setSortable(true).setHeader("Databus ID Type");
+        result_grid.addColumn(SearchResult::getStartDate).setSortable(true).setHeader("Start Date");
+        result_grid.addColumn(SearchResult::getEndDate).setSortable(true).setHeader("End Date");
 
         search_field.setValueChangeMode(ValueChangeMode.LAZY);
         search_field.setPlaceholder("Search the Databus for Files containing or annotated with Classes, Properties etc.");
