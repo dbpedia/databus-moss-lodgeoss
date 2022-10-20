@@ -17,6 +17,7 @@ import com.vaadin.flow.component.radiobutton.RadioGroupVariant;
 import com.vaadin.flow.component.select.Select;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.provider.DataProvider;
+import com.vaadin.flow.data.provider.ListDataProvider;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.data.renderer.TemplateRenderer;
 import com.vaadin.flow.data.value.ValueChangeMode;
@@ -55,6 +56,9 @@ public class SearchView extends Div {
     private final String databus_mods_endpoint;
     private final List<SearchResult> result_list = new ArrayList<>();
     private final Logger log = LoggerFactory.getLogger(SearchView.class);
+
+    private final DatePicker startDate = new DatePicker("Start date");
+    private final DatePicker endDate = new DatePicker("End date");
 
     @Autowired
     public SearchView(@Value("${databus.file.endpoint}") String databus_file_endpoint, @Value("${databus.mods.endpoint}") String databus_mods_endpoint) {
@@ -182,8 +186,8 @@ public class SearchView extends Div {
 
         // the date range picker
 
-        DatePicker startDate = new DatePicker("Start date");
-        DatePicker endDate = new DatePicker("End date");
+        startDate.addValueChangeListener(val -> filterResultsByDate());
+        endDate.addValueChangeListener(val -> filterResultsByDate());
 
         HorizontalLayout searchGroup = new HorizontalLayout();
         searchGroup.setWidth("100%");
@@ -243,7 +247,7 @@ public class SearchView extends Div {
                     break;
             }
             log.debug("Query sent: " + query);
-            System.out.println(query);
+            //System.out.println(query);
             List<SearchResult> search_results = sendSPARQL(query, sparqlEndpoint);
             result_list.addAll(search_results);
             result_grid.getDataProvider().refreshAll();
@@ -273,9 +277,21 @@ public class SearchView extends Div {
         }
     }
 
-    private void filterResultsByDate(LocalDate filterStartDate, LocalDate filterEndDate) {
+    private void filterResultsByDate() {
 
-        result_grid.getDataProvider().;
+
+        ListDataProvider<SearchResult> dp = (ListDataProvider<SearchResult>) result_grid.getDataProvider();
+
+        LocalDate startDate = this.startDate.getValue();
+        LocalDate endDate = this.endDate.getValue();
+
+
+        if (startDate == null && endDate == null) {
+            dp.clearFilters();
+        } else {
+            dp.setFilter(searchResult -> searchResult.isInRange(startDate, endDate));
+        }
+
     }
 
 }

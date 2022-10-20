@@ -170,8 +170,8 @@ public final class QueryBuilding {
                 "\t\t\t\tprov:used ?id .\n" +
                 "\t\t\tOPTIONAL {\n" +
                 "\t\t\t\t?metadata time:hasTemporalDuration/time:hasDateTimeDescription ?timeDesc .\n" +
-                "\t\t\t\t?timeDesc dbo:startDateTimo ?startDateTime;\n" +
-                "\t\t\t\t\tdbo:endDateTimo ?endDateTime .\n" +
+                "\t\t\t\t?timeDesc dbo:startDateTime ?startDateTime;\n" +
+                "\t\t\t\t\tdbo:endDateTime ?endDateTime .\n" +
                 "\t\t\t}" +
                 "\t\t}");
 

@@ -129,8 +129,8 @@ public final class SearchResult {
         IDType type = getIDTypeFromClass(qs.get("type").toString());
         String title = URLDecoder.decode(qs.get("title").toString(), StandardCharsets.UTF_8);
         String comment = URLDecoder.decode(qs.get("comment").toString(), StandardCharsets.UTF_8);
-        String startDateString = qs.contains("startDateTime") ? qs.get("startDateTime").toString() : "";
-        String endDateString = qs.contains("endDateTime") ? qs.get("endDateTime").toString() : "";
+        String startDateString = qs.contains("startDateTime") ? qs.get("startDateTime").toString().split("\\^\\^")[0] : "";
+        String endDateString = qs.contains("endDateTime") ? qs.get("endDateTime").toString().split("\\^\\^")[0] : "";
 
 
         return new SearchResult(type, databusPage, title, identifier, comment, startDateString, endDateString);
@@ -158,5 +158,23 @@ public final class SearchResult {
                 break;
         }
         return result;
+    }
+
+    public boolean isInRange(LocalDate startDate, LocalDate endDate) {
+
+        if (this.endDate.equals("") || this.startDate.equals("")) {
+            return false;
+        }
+
+        LocalDate selfStartDate = this.getStartDateLocalDate();
+        LocalDate selfEndDate = this.getEndDateLocalDate();
+
+        if (startDate == null) {
+            return selfStartDate.isBefore(endDate);
+        } else if (endDate == null) {
+            return selfEndDate.isAfter(startDate);
+        } else {
+            return selfStartDate.isBefore(endDate) && selfEndDate.isAfter(startDate);
+        }
     }
 }
