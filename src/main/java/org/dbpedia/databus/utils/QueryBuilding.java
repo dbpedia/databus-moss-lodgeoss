@@ -19,7 +19,7 @@ public final class QueryBuilding {
                 "PREFIX csvw: <http://www.w3.org/ns/csvw#>\n" +
                 "PREFIX prov: <http://www.w3.org/ns/prov#>\n" +
                 "PREFIX time: <http://www.w3.org/2006/time#>\n" +
-                "PREFIX dbo: <https://dbpedia.org/ontology/>\n" +
+                "PREFIX dbo: <http://dbpedia.org/ontology/>\n" +
                 "\n" +
                 "SELECT DISTINCT ?type ?title ?comment ?id ?versionURI ?startDateTime ?endDateTime {\n" +
                 modsPart +
