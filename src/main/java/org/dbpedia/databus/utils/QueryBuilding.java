@@ -20,10 +20,12 @@ public final class QueryBuilding {
                 "PREFIX prov: <http://www.w3.org/ns/prov#>\n" +
                 "PREFIX time: <http://www.w3.org/2006/time#>\n" +
                 "PREFIX dbo: <http://dbpedia.org/ontology/>\n" +
+                "PREFIX saref: <https://saref.etsi.org/core/>\n" +
+                "PREFIX gr: <http://purl.org/goodrelations/v1#>\n" +
                 "\n" +
                 "SELECT DISTINCT ?type ?title ?comment ?id ?versionURI ?startDateTime ?endDateTime {\n" +
                 modsPart +
-                "SERVICE <" + databusEndpoint + "> {\n" +
+                "\nSERVICE <" + databusEndpoint + "> {\n" +
                 "    { ?dataset a ?type .\n" +
                 "    \t#OPTIONAL { ?dataset dataid:group ?group . }\n" +
                 "    \tOPTIONAL { ?dataset dataid:version ?versionURI . }\n" +
@@ -155,7 +157,7 @@ public final class QueryBuilding {
 
         if (aggType == AggregationType.AND) {
             for (String iri: iris) {
-                modsPart.append("\t\t\t?column <http://purl.org/goodrelations/v1#valueReference> <").append(iri).append("> .\n");
+                modsPart.append("\t\t\t?column gr:valueReference|saref:isAbout <").append(iri).append("> .\n");
             }
         } else {
             modsPart.append("\t\t\tVALUES ?topic { ");
@@ -163,7 +165,7 @@ public final class QueryBuilding {
                 modsPart.append("<").append(iri).append("> ");
             }
             modsPart.append("}\n");
-            modsPart.append("\t\t\t?column <http://purl.org/goodrelations/v1#valueReference> ?topic .");
+            modsPart.append("\t\t\t?column gr:valueReference|saref:isAbout ?topic .\n");
         }
 
         modsPart.append("\t\t\t?activity a <http://mods.tools.dbpedia.org/ns/demo#ApiDemoMod>; \n" +
