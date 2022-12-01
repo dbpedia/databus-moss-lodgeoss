@@ -67,7 +67,7 @@ public class AnnotationAPIDemoController {
             RDFParser.create().fromString(content).lang(rdf_lang).parse(model);
         } catch (Exception e) {
             log.warn("Exception during parsing: ", e);
-            return new ResponseEntity<>("Failed: " + e, HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>("Failed: " + e, HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
 
