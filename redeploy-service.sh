@@ -14,7 +14,7 @@ else
 	echo "redeploy"
 	echo "$md5" > ./.md5
 
-	mvn install -Pproduction
+	mvn -B install -Pproduction
 
 	docker build -t databus-moss .
 
