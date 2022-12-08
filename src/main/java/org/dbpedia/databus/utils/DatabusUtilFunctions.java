@@ -24,27 +24,27 @@ public final class DatabusUtilFunctions {
         }
 
         Query query = QueryFactory.create(
-                "PREFIX dataid: <http://dataid.dbpedia.org/ns/core#>\n" +
-                "PREFIX dct:    <http://purl.org/dc/terms/>\n" +
-                "PREFIX dcat:   <http://www.w3.org/ns/dcat#>\n" +
-                "PREFIX db:     <https://databus.dbpedia.org/>\n" +
-                "PREFIX rdf:    <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n" +
-                "PREFIX rdfs:   <http://www.w3.org/2000/01/rdf-schema#>\n" +
+                "PREFIX  dataid: <http://dataid.dbpedia.org/ns/core#>\n" +
+                "PREFIX  dct:  <http://purl.org/dc/terms/>\n" +
+                "PREFIX  rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n" +
+                "PREFIX  rdfs: <http://www.w3.org/2000/01/rdf-schema#>\n" +
+                "PREFIX  dcat: <http://www.w3.org/ns/dcat#>\n" +
+                "PREFIX  db:   <https://databus.dbpedia.org/>\n" +
                 "\n" +
-                "SELECT DISTINCT ?s WHERE {\n" +
-                "  BIND(<" + databusID + "> AS ?id)\n" +
-                "  {\n" +
-                "  ?s dataid:file ?id .\n" +
-                "  } UNION {\n" +
-                "    VALUES ?type { dataid:Group dataid:Artifact dataid:Version <https://databus.dbpedia.org/system/voc/Collection> dataid:Collection} \n" +
-                "    ?id a ?type .\n" +
-                "    ?id dct:publisher ?s .\n" +
+                "SELECT DISTINCT  ?s\n" +
+                "WHERE\n" +
+                "  { BIND(<" + databusID + "> AS ?id)\n" +
+                "     { ?s  dataid:file  ?id }\n" +
+                "    UNION\n" +
+                "      { VALUES ?type { dataid:Group dataid:Artifact dataid:Version <https://databus.dbpedia.org/system/voc/Collection> dataid:Collection }\n" +
+                "        ?id  rdf:type       ?type .\n" +
+                "        BIND(?type AS ?s)\n" +
+                "      }\n" +
                 "  }\n" +
-                "} LIMIT 1"
+                "LIMIT   1"
         );
         String redirectedUri = getFinalRedirectionURI(databusBase + "/sparql");
         if (redirectedUri == null) {
-            log.error("Couldnt determine endpoint of " + databusBase);
             return false;
         } else {
             QueryExecution qexec = QueryExecutionFactory.sparqlService(redirectedUri, query);

@@ -46,6 +46,7 @@ public final class MossUtilityFunctions {
 
         String result;
 
+
         if (m.find()) {
             result = m.group(1);
         } else {

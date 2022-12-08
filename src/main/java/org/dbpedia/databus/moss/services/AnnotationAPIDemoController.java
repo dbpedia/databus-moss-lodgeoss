@@ -80,7 +80,7 @@ public class AnnotationAPIDemoController {
             ms.submit_model(identifier, model);
         } catch (IOException ioex) {
             log.warn("Exception during pushing data: ", ioex);
-            return new ResponseEntity<>("Failed: " + ioex, HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>("INTERNAL ERROR: Virtuoso unavailable", HttpStatus.INTERNAL_SERVER_ERROR);
         }
         return new ResponseEntity<>("Success", HttpStatus.OK);
     }
