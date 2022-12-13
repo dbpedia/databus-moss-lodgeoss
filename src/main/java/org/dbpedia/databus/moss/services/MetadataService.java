@@ -59,7 +59,7 @@ public class MetadataService {
         db.close();
     }
 
-    public void createAnnotation(String df, List<AnnotationURL> annotationURLS) {
+    public void createAnnotation(String df, List<AnnotationURL> annotationURLS) throws IOException {
 
         String databusBase = MossUtilityFunctions.extractBaseFromURL(df);
 
@@ -92,15 +92,15 @@ public class MetadataService {
             log.info("loaded " + df+"#annotation");
         } catch (IOException ioe) {
             ioe.printStackTrace();
+            throw ioe;
         }
 
         File annotationSVGFile = new File(baseDir, databusFilePath + "/" + "annotation.svg");
-        try {
-            FileOutputStream fos = new FileOutputStream(annotationSVGFile);
+        try (FileOutputStream fos = new FileOutputStream(annotationSVGFile)) {
             IOUtils.write(SVGBuilder.svgString2dec.replace("#NO", String.valueOf(annotationURLS.size())),fos,StandardCharsets.UTF_8);
-            fos.close();
         } catch (IOException ioe) {
             ioe.printStackTrace();
+            throw ioe;
         }
 
     }

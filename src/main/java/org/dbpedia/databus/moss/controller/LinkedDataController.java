@@ -1,6 +1,7 @@
-package org.dbpedia.databus.moss.services;
+package org.dbpedia.databus.moss.controller;
 
 import org.apache.commons.io.IOUtils;
+import org.dbpedia.databus.moss.services.MetadataService;
 import org.dbpedia.databus.utils.MossUtilityFunctions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;

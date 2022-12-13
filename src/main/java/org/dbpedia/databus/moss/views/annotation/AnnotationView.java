@@ -25,6 +25,7 @@ import org.dbpedia.databus.moss.views.main.MainView;
 import org.dbpedia.databus.utils.*;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.io.IOException;
 import java.util.*;
 
 @Route(value = "annotate", layout = MainView.class)
@@ -144,9 +145,14 @@ public class AnnotationView extends Div implements BeforeEnterObserver {
                     String identifier = databusIdTF.getValue();
                     if (DatabusUtilFunctions.validate(identifier)
                     && ! annotationUrls.isEmpty()) {
-                        ms.createAnnotation(databusIdTF.getValue(), annotationUrls);
-                        updateVersionLink(databusIdTF.getValue());
-                        Notification.show("submitted", 2000, Notification.Position.MIDDLE);
+                        try {
+                            ms.createAnnotation(databusIdTF.getValue(), annotationUrls);
+                            updateVersionLink(databusIdTF.getValue());
+                            Notification.show("submitted", 2000, Notification.Position.MIDDLE);
+                        } catch (IOException ioex) {
+                            Notification.show("Internal ERROR during submission", 2000, Notification.Position.MIDDLE);
+                        }
+
                     } else {
                         updateVersionLink(null);
                         Notification.show("invalid input", 2000, Notification.Position.MIDDLE);
