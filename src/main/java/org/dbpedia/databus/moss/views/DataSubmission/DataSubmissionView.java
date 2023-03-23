@@ -81,7 +81,7 @@ public class DataSubmissionView extends Div implements BeforeEnterObserver {
             }
         });
         databusIdTF.setValueChangeMode(ValueChangeMode.LAZY);
-        databusIdTF.setValue("https://databus.dbpedia.org/jj-author/mastr/bnetza-mastr/01.04.01/bnetza-mastr_rli_type=wind.nt.gz");
+        databusIdTF.setValue("https://energy.databus.dbpedia.org/oeplatform/scenario/ksz2050_r2_ks80_co2_emissions_industrial_processes");
 
         // submit data
         Button submitBTN = new Button("submit");
@@ -163,7 +163,7 @@ public class DataSubmissionView extends Div implements BeforeEnterObserver {
         Location location = beforeEnterEvent.getLocation();
         QueryParameters queryParameters = location.getQueryParameters();
         Map<String, List<String>> parametersMap = queryParameters.getParameters();
-        List<String> defaultDatabusFiles = Collections.singletonList("https://databus.dbpedia.org/jj-author/mastr/bnetza-mastr/01.04.01/bnetza-mastr_rli_type=wind.nt.gz");
+        List<String> defaultDatabusFiles = Collections.singletonList("https://energy.databus.dbpedia.org/oeplatform/scenario/ksz2050_r2_ks80_co2_emissions_industrial_processes");
         String databusFile = parametersMap.getOrDefault("dfid", defaultDatabusFiles).get(0);
         databusIdTF.setPlaceholder(databusFile);
         databusIdTF.setValue(databusFile);
