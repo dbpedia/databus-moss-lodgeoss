@@ -176,9 +176,13 @@ public class SearchView extends Div {
         });
 
         selectDatabus.setLabel("Choose the Databus:");
-        selectDatabus.setItems("https://databus.dbpedia.org", "https://energy.databus.dbpedia.org",
-                "https://dev.databus.dbpedia.org", "https://d8lr.tools.dbpedia.org");
-        selectDatabus.setValue("https://energy.databus.dbpedia.org");
+        selectDatabus.setItems(
+                "https://databus.dbpedia.org",
+                "https://databus.openenergyplatform.org",
+                "https://energy.databus.dbpedia.org",
+                "https://dev.databus.dbpedia.org",
+                "https://d8lr.tools.dbpedia.org");
+        selectDatabus.setValue("https://databus.openenergyplatform.org");
         selectDatabus.setWidth("50%");
 
         HorizontalLayout buttons = new HorizontalLayout(search_button, clear_selected_button);
@@ -240,6 +244,7 @@ public class SearchView extends Div {
                     break;
                 case VOID:
                     query = QueryBuilding.buildVoidQuery(iris, aggType);
+                    System.out.println(query);
                     sparqlEndpoint = DatabusUtilFunctions.getFinalRedirectionURI(selectDatabus.getValue() + "/sparql");
                     break;
                 case OEP_Metadata:
@@ -249,7 +254,7 @@ public class SearchView extends Div {
                     break;
             }
             log.debug("Query sent: " + query);
-            //System.out.println(query);
+            System.out.println(query);
             List<SearchResult> search_results = sendSPARQL(query, sparqlEndpoint);
             result_list.addAll(search_results);
             result_grid.getDataProvider().refreshAll();

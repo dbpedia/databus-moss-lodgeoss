@@ -10,6 +10,8 @@ public final class QueryBuilding {
         return "PREFIX foaf: <http://xmlns.com/foaf/0.1/>\n" +
                 "PREFIX void: <http://rdfs.org/ns/void#>\n" +
                 "PREFIX dataid: <http://dataid.dbpedia.org/ns/core#>\n" +
+                "PREFIX databus: <https://dataid.dbpedia.org/databus#>\n" +
+                "PREFIX dcv: <https://dataid.dbpedia.org/databus-cv#>\n" +
                 "PREFIX dct:    <http://purl.org/dc/terms/>\n" +
                 "PREFIX dcat:   <http://www.w3.org/ns/dcat#>\n" +
                 "PREFIX db:     <https://databus.dbpedia.org/>\n" +
@@ -27,14 +29,14 @@ public final class QueryBuilding {
                 modsPart +
                 "\nSERVICE <" + databusEndpoint + "> {\n" +
                 "    { ?dataset a ?type .\n" +
-                "    \t#OPTIONAL { ?dataset dataid:group ?group . }\n" +
-                "    \tOPTIONAL { ?dataset dataid:version ?versionURI . }\n" +
+                "    \t#OPTIONAL { ?dataset databus:group ?group . }\n" +
+                "    \tOPTIONAL { ?dataset databus:version ?versionURI . }\n" +
                 "        ?dataset dcat:distribution ?distribution . \n" +
-                "    \t?distribution dataid:file ?id .\n" +
+                "    \t?distribution databus:file ?id .\n" +
                 "    \t?dataset dct:title ?title .\n" +
                 "    \t?dataset dct:abstract|rdfs:comment ?comment .\n" +
                 "    } UNION {\n" +
-                "\t\tVALUES ?type { dataid:Group dataid:Version <https://databus.dbpedia.org/system/voc/Collection> dataid:Collection }\n" +
+                "\t\tVALUES ?type { databus:Group databus:Version <https://databus.dbpedia.org/system/voc/Collection> databus:Collection }\n" +
                 "      \t?id a ?type .\n" +
                 "      \t?id dct:title ?title .\n" +
                 "      \t?id dct:abstract ?comment .\n" +
@@ -43,15 +45,15 @@ public final class QueryBuilding {
                 "    { \n" +
                 "\t\t# Selects the latest version\n" +
                 "\t\tSELECT DISTINCT (MAX(?v) as ?latestVersion) WHERE {\n" +
-                "\t\t\t  ?dataset dataid:artifact ?id.\n" +
+                "\t\t\t  ?dataset databus:artifact ?id.\n" +
                 "\t\t\t  ?dataset dcat:distribution ?distribution .\n" +
                 "\t\t\t  ?dataset dct:hasVersion ?v .\n" +
                 "\t\t\t} \n" +
                 "\t}\n" +
-                "    ?dataset dataid:artifact ?id .\n" +
+                "    ?dataset databus:artifact ?id .\n" +
                 "    ?dataset dct:hasVersion ?latestVersion .\n" +
-                "    #OPTIONAL { ?dataset dataid:group ?group . }\n" +
-                "    OPTIONAL { ?dataset dataid:version ?versionURI . }\n" +
+                "    #OPTIONAL { ?dataset databus:group ?group . }\n" +
+                "    OPTIONAL { ?dataset databus:version ?versionURI . }\n" +
                 "    ?dataset dcat:distribution ?distribution . \n" +
                 "    ?dataset dct:title ?title .\n" +
                 "    ?dataset dct:abstract|rdfs:comment ?comment .\n" +
@@ -124,6 +126,8 @@ public final class QueryBuilding {
         return "PREFIX foaf: <http://xmlns.com/foaf/0.1/>\n" +
                 "PREFIX void: <http://rdfs.org/ns/void#>\n" +
                 "PREFIX dataid: <http://dataid.dbpedia.org/ns/core#>\n" +
+                "PREFIX databus: <https://dataid.dbpedia.org/databus#>\n" +
+                "PREFIX dcv: <https://dataid.dbpedia.org/databus-cv#>\n" +
                 "PREFIX dct:    <http://purl.org/dc/terms/>\n" +
                 "PREFIX dcat:   <http://www.w3.org/ns/dcat#>\n" +
                 "PREFIX db:     <https://databus.dbpedia.org/>\n" +
@@ -140,12 +144,12 @@ public final class QueryBuilding {
                 "  \n" +
                 " }\n" +
                 "     ?dataset a ?type .\n" +
-                "     ?dataset dataid:group ?group .\n" +
+                "     ?dataset databus:group ?group .\n" +
                 "     ?dataset dcat:distribution ?distribution .\n" +
-                "     ?dataset dataid:version ?databusPage .\n" +
+                "     ?dataset databus:version ?databusPage .\n" +
                 "     ?dataset dct:title ?title .\n" +
                 "     ?dataset rdfs:comment ?comment .\n" +
-                "     ?distribution dataid:file ?id .\n" +
+                "     ?distribution databus:file ?id .\n" +
                 "\n" +
                 "}";
     }
