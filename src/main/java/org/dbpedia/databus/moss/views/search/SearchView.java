@@ -244,7 +244,7 @@ public class SearchView extends Div {
                     break;
                 case VOID:
                     query = QueryBuilding.buildVoidQuery(iris, aggType);
-                    System.out.println(query);
+                    //System.out.println(query);
                     sparqlEndpoint = DatabusUtilFunctions.getFinalRedirectionURI(selectDatabus.getValue() + "/sparql");
                     break;
                 case OEP_Metadata:
@@ -254,7 +254,7 @@ public class SearchView extends Div {
                     break;
             }
             log.debug("Query sent: " + query);
-            System.out.println(query);
+            //System.out.println(query);
             List<SearchResult> search_results = sendSPARQL(query, sparqlEndpoint);
             result_list.addAll(search_results);
             result_grid.getDataProvider().refreshAll();
