@@ -24,7 +24,8 @@ public final class DatabusUtilFunctions {
         }
 
         Query query = QueryFactory.create(
-                "PREFIX  dataid: <http://dataid.dbpedia.org/ns/core#>\n" +
+                "PREFIX dataid: <http://dataid.dbpedia.org/ns/core#>\n" +
+                "PREFIX databus: <https://dataid.dbpedia.org/databus#>\n" +
                 "PREFIX  dct:  <http://purl.org/dc/terms/>\n" +
                 "PREFIX  rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n" +
                 "PREFIX  rdfs: <http://www.w3.org/2000/01/rdf-schema#>\n" +
@@ -34,16 +35,18 @@ public final class DatabusUtilFunctions {
                 "SELECT DISTINCT  ?s\n" +
                 "WHERE\n" +
                 "  { BIND(<" + databusID + "> AS ?id)\n" +
-                "     { ?s  dataid:file  ?id }\n" +
+                "     { ?s  databus:file  ?id }\n" +
                 "    UNION\n" +
-                "      { VALUES ?type { dataid:Group dataid:Artifact dataid:Version <https://databus.dbpedia.org/system/voc/Collection> dataid:Collection }\n" +
+                "      { VALUES ?type { databus:Group databus:Artifact databus:Version <https://databus.dbpedia.org/system/voc/Collection> databus:Collection }\n" +
                 "        ?id  rdf:type       ?type .\n" +
                 "        BIND(?type AS ?s)\n" +
                 "      }\n" +
                 "  }\n" +
                 "LIMIT   1"
         );
+        System.out.println(query);
         String redirectedUri = getFinalRedirectionURI(databusBase + "/sparql");
+        System.out.println(redirectedUri);
         if (redirectedUri == null) {
             return false;
         } else {

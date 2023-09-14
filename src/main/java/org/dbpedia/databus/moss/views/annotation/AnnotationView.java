@@ -202,7 +202,7 @@ public class AnnotationView extends Div implements BeforeEnterObserver {
         Location location = beforeEnterEvent.getLocation();
         QueryParameters queryParameters = location.getQueryParameters();
         Map<String, List<String>> parametersMap = queryParameters.getParameters();
-        List<String> defaultDatabusFiles = Collections.singletonList("https://databus.dbpedia.org/jj-author/mastr/bnetza-mastr/01.04.01/bnetza-mastr_rli_type=wind.nt.gz");
+        List<String> defaultDatabusFiles = Collections.singletonList("https://databus.openenergyplatform.org/oeplatform/grid/bnetza_vorhaben_bbplg/2022-11-07/bnetza_vorhaben_bbplg_variant=data.csv");
         String databusFile = parametersMap.getOrDefault("dfid", defaultDatabusFiles).get(0);
         databusIdTF.setPlaceholder(databusFile);
         databusIdTF.setValue(databusFile);
