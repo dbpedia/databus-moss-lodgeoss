@@ -136,7 +136,7 @@ indexFields:
     documentVariable: databusFile
     type: uri
     query: >
-      SELECT ?databusFile ?annotation {
+      SELECT DISTINCT ?databusFile ?annotation {
         {
           GRAPH ?g {
             
