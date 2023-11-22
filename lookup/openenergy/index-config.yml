@@ -19,7 +19,53 @@ indexFields:
             ?resource a <http://www.w3.org/2002/07/owl#NamedIndividual> .
           }
           ?resource <http://www.w3.org/2000/01/rdf-schema#label> ?l .
-          BIND (STR(?l) as ?label)
+          BIND(STR(?l) AS ?label)
+        }
+      }
+  - fieldName: description
+    documentVariable: resource
+    query: >
+      SELECT DISTINCT ?resource ?description WHERE {
+        GRAPH <https://openenergy-platform.org/ontology> {
+          {
+            ?resource a <http://www.w3.org/2002/07/owl#Class> .
+          }
+          UNION 
+          {
+            ?resource a <http://www.w3.org/2002/07/owl#NamedIndividual> .
+          }
+          ?resource <http://purl.obolibrary.org/obo/IAO_0000115> ?description .
+        }
+      }
+  - fieldName: altLabel
+    documentVariable: resource
+    query: >
+      SELECT DISTINCT ?resource ?altLabel WHERE {
+        GRAPH <https://openenergy-platform.org/ontology> {
+          {
+            ?resource a <http://www.w3.org/2002/07/owl#Class> .
+          }
+          UNION 
+          {
+            ?resource a <http://www.w3.org/2002/07/owl#NamedIndividual> .
+          }
+          ?resource <http://purl.obolibrary.org/obo/IAO_0000118> ?l .
+          BIND(STR(?l) AS ?altLabel)
+        }
+      }
+  - fieldName: type
+    documentVariable: resource
+    query: >
+      SELECT DISTINCT ?resource ?type WHERE {
+        GRAPH <https://openenergy-platform.org/ontology> {
+          {
+            ?resource a <http://www.w3.org/2002/07/owl#Class> .
+          }
+          UNION 
+          {
+            ?resource a <http://www.w3.org/2002/07/owl#NamedIndividual> .
+          }
+          BIND("tag" AS ?type)
         }
       }
   - fieldName: oeoNumber
@@ -39,47 +85,6 @@ indexFields:
         
         FILTER (isURI(?resource))
       }
-  - fieldName: tag
-    documentVariable: resource
-    query: >
-    SELECT ?resource ?type WHERE {
-      GRAPH <https://openenergy-platform.org/ontology> {
-        {
-          ?resource a <http://www.w3.org/2002/07/owl#Class> .
-        }
-        UNION 
-        {
-          ?resource a <http://www.w3.org/2002/07/owl#NamedIndividual> .
-        }
-      }
-      BIND("tag" as ?type)
-    }
-  - fieldName: file
-    documentVariable: resource
-    query: >
-    SELECT ?databusFile ?type ?file {
-      {
-        GRAPH ?g {
-          ?activity a <http://mods.tools.dbpedia.org/ns/demo#AnnotationMod> .
-          ?activity <http://www.w3.org/ns/prov#used> ?databusFile .
-        }
-      }
-      UNION
-      {
-        GRAPH ?g {
-          ?activity a <http://mods.tools.dbpedia.org/ns/demo#ApiDemoMod> .
-          ?activity <http://www.w3.org/ns/prov#used> ?databusFile .
-        }
-      }
-      UNION
-      {
-        GRAPH ?g {
-          ?activity a <http://mods.tools.dbpedia.org/ns/demo#ApiDemoMod> .
-          ?activity <http://www.w3.org/ns/prov#used> ?databusFile .
-        }
-      }
-      BIND("file" as ?type)
-    }
   - fieldName: classId
     documentVariable: resource
     query: >
@@ -96,6 +101,33 @@ indexFields:
         }
         
         FILTER (isURI(?resource))
+      }
+  - fieldName: type
+    documentVariable: databusFile
+    type: string
+    query: >
+      SELECT ?databusFile ?type {
+        {
+          GRAPH ?g {
+            ?activity a <http://mods.tools.dbpedia.org/ns/demo#AnnotationMod> .
+            ?activity <http://www.w3.org/ns/prov#used> ?databusFile .
+          }
+        }
+        UNION
+        {
+          GRAPH ?g {
+            ?activity a <http://mods.tools.dbpedia.org/ns/demo#ApiDemoMod> .
+            ?activity <http://www.w3.org/ns/prov#used> ?databusFile .
+          }
+        }
+        UNION
+        {
+          GRAPH ?g {
+            ?activity a <http://mods.tools.dbpedia.org/ns/demo#ApiDemoMod> .
+            ?activity <http://www.w3.org/ns/prov#used> ?databusFile .
+          }
+        }
+        BIND("file" AS ?type)
       }
   - fieldName: annotation
     documentVariable: databusFile
