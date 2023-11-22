@@ -33,6 +33,7 @@ queryFields:
     required: true
   - fieldName: classId
     weight: 10
+    exact: true
     highlight: false
     tokenize: true
     queryByDefault: false
