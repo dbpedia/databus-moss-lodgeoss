@@ -5,7 +5,8 @@ prefixMatchBoost: 5
 fuzzyMatchBoost: 2
 fuzzyEditDistance: 2
 fuzzyPrefixLength: 2
-maxResults: 100
+boostFormula: annotatedCount
+maxResults: 1000
 format: JSON
 minScore: 0.1
 queryFields:
@@ -24,3 +25,14 @@ queryFields:
     highlight: true
     tokenize: true
     queryByDefault: true
+  - fieldName: type
+    weight: 1
+    highlight: false
+    tokenize: false
+    exact: true
+    required: true
+  - fieldname: classId
+    weight: 10
+    highlight: false
+    tokenize: false
+    queryByDefault: false
