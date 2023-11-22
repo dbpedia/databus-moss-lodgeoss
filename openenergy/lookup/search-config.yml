@@ -31,7 +31,7 @@ queryFields:
     tokenize: false
     exact: true
     required: true
-  - fieldname: classId
+  - fieldName: classId
     weight: 10
     highlight: false
     tokenize: false
