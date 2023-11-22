@@ -3,7 +3,7 @@ indexPath: ./index
 indexMode: INDEX_SPARQL_ENDPOINT
 sparqlEndpoint: https://mods.tools.dbpedia.org/sparql
 cleanIndex: true
-cacheSize: 1000000
+maxBufferedDocs: 1000000
 commitInterval: 100
 indexFields:
   - fieldName: label
@@ -39,7 +39,7 @@ indexFields:
         FILTER (isURI(?resource))
       }
   - fieldName: tag
-    documentVariable: class
+    documentVariable: resource
     query: >
     SELECT ?resource ?type WHERE {
       GRAPH <https://openenergy-platform.org/ontology> {
@@ -50,12 +50,11 @@ indexFields:
         {
           ?resource a <http://www.w3.org/2002/07/owl#NamedIndividual> .
         }
-        ?resource <http://www.w3.org/2000/01/rdf-schema#label> ?tpye .
       }
       BIND("tag" as ?type)
     }
   - fieldName: file
-    documentVariable: databusFile
+    documentVariable: resource
     query: >
     SELECT ?databusFile ?type ?file {
       {
