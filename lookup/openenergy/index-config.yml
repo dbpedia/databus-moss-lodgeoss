@@ -38,6 +38,48 @@ indexFields:
         
         FILTER (isURI(?resource))
       }
+  - fieldName: tag
+    documentVariable: class
+    query: >
+    SELECT ?resource ?type WHERE {
+      GRAPH <https://openenergy-platform.org/ontology> {
+        {
+          ?resource a <http://www.w3.org/2002/07/owl#Class> .
+        }
+        UNION 
+        {
+          ?resource a <http://www.w3.org/2002/07/owl#NamedIndividual> .
+        }
+        ?resource <http://www.w3.org/2000/01/rdf-schema#label> ?tpye .
+      }
+      BIND("tag" as ?type)
+    }
+  - fieldName: file
+    documentVariable: databusFile
+    query: >
+    SELECT ?databusFile ?type ?file {
+      {
+        GRAPH ?g {
+          ?activity a <http://mods.tools.dbpedia.org/ns/demo#AnnotationMod> .
+          ?activity <http://www.w3.org/ns/prov#used> ?databusFile .
+        }
+      }
+      UNION
+      {
+        GRAPH ?g {
+          ?activity a <http://mods.tools.dbpedia.org/ns/demo#ApiDemoMod> .
+          ?activity <http://www.w3.org/ns/prov#used> ?databusFile .
+        }
+      }
+      UNION
+      {
+        GRAPH ?g {
+          ?activity a <http://mods.tools.dbpedia.org/ns/demo#ApiDemoMod> .
+          ?activity <http://www.w3.org/ns/prov#used> ?databusFile .
+        }
+      }
+      BIND("file" as ?type)
+    }
   - fieldName: classId
     documentVariable: resource
     query: >
