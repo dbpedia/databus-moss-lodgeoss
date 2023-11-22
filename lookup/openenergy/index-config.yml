@@ -9,7 +9,7 @@ indexFields:
   - fieldName: label
     documentVariable: resource
     query: >
-      SELECT ?resource ?label WHERE {
+      SELECT DISTINCT ?resource ?label WHERE {
         GRAPH <https://openenergy-platform.org/ontology> {
           {
             ?resource a <http://www.w3.org/2002/07/owl#Class> .
@@ -18,7 +18,8 @@ indexFields:
           {
             ?resource a <http://www.w3.org/2002/07/owl#NamedIndividual> .
           }
-          ?resource <http://www.w3.org/2000/01/rdf-schema#label> ?label .
+          ?resource <http://www.w3.org/2000/01/rdf-schema#label> ?l .
+          BIND (STR(?l) as ?label)
         }
       }
   - fieldName: oeoNumber
