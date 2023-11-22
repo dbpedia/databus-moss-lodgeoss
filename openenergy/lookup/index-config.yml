@@ -21,7 +21,6 @@ indexFields:
           ?resource <http://www.w3.org/2000/01/rdf-schema#label> ?l .
           BIND(STR(?l) AS ?label)
         }
-        FILTER (isURI(?resource))
       }
   - fieldName: description
     documentVariable: resource
@@ -37,7 +36,6 @@ indexFields:
           }
           ?resource <http://purl.obolibrary.org/obo/IAO_0000115> ?description .
         }
-        FILTER (isURI(?resource))
       }
   - fieldName: altLabel
     documentVariable: resource
@@ -54,7 +52,6 @@ indexFields:
           ?resource <http://purl.obolibrary.org/obo/IAO_0000118> ?l .
           BIND(STR(?l) AS ?altLabel)
         }
-        FILTER (isURI(?resource))
       }
   - fieldName: type
     documentVariable: resource
@@ -71,7 +68,6 @@ indexFields:
           }
           BIND("tag" AS ?type)
         }
-        FILTER (isURI(?resource))
       }
   - fieldName: oeoNumber
     documentVariable: resource
