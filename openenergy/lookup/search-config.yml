@@ -10,6 +10,13 @@ maxResults: 1000
 format: JSON
 minScore: 0.1
 queryFields:
+  - fieldName: id
+    weight: 1
+    exact: true
+    required: true
+    highlight: false
+    tokenize: true
+    queryByDefault: false
   - fieldName: label
     weight: 10
     highlight: true
