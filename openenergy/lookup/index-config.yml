@@ -142,7 +142,7 @@ indexFields:
             
             ?activity a <http://mods.tools.dbpedia.org/ns/demo#AnnotationMod> .
             ?activity <http://www.w3.org/ns/prov#used> ?databusFile .
-            ?databusFile <http://purl.org/dc/elements/1.1/annotation> ?annotation .
+            ?databusFile <http://purl.org/dc/elements/1.1/subject> ?annotation .
           }
         }
         UNION
@@ -161,7 +161,7 @@ indexFields:
           GRAPH ?g {
             ?activity a <http://mods.tools.dbpedia.org/ns/demo#ApiDemoMod> .
             ?activity <http://www.w3.org/ns/prov#used> ?databusFile .
-            ?databusFile <http://purl.org/dc/elements/1.1/annotation> ?annotation .
+            ?databusFile <http://purl.org/dc/elements/1.1/subject> ?annotation .
           }
         }
         FILTER (isURI(?annotation))
@@ -176,7 +176,7 @@ indexFields:
 
             ?activity a <http://mods.tools.dbpedia.org/ns/demo#AnnotationMod> .
             ?activity <http://www.w3.org/ns/prov#used> ?databusFile .
-            ?databusFile <http://purl.org/dc/elements/1.1/annotation> ?oeoClass .
+            ?databusFile <http://purl.org/dc/elements/1.1/subject> ?oeoClass .
           }
         }
         UNION
@@ -195,7 +195,7 @@ indexFields:
           GRAPH ?g {
             ?activity a <http://mods.tools.dbpedia.org/ns/demo#ApiDemoMod> .
             ?activity <http://www.w3.org/ns/prov#used> ?databusFile .
-            ?databusFile <http://purl.org/dc/elements/1.1/annotation> ?oeoClass .
+            ?databusFile <http://purl.org/dc/elements/1.1/subject> ?oeoClass .
           }
         }
         FILTER (isURI(?oeoClass))
