@@ -15,7 +15,6 @@ queryFields:
     exact: true
     required: true
     highlight: false
-    tokenize: true
     queryByDefault: false
   - fieldName: label
     weight: 10
