@@ -1,10 +1,20 @@
 package org.dbpedia.databus.moss.services;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.http.entity.FileEntity;
+import org.apache.http.entity.StringEntity;
+import org.apache.jena.atlas.json.JsonObject;
+import org.apache.jena.atlas.json.JsonString;
 import org.apache.jena.query.*;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
+import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.ResourceFactory;
+import org.apache.jena.riot.Lang;
+import org.apache.jena.riot.RDFDataMgr;
+import org.apache.jena.riot.RDFFormat;
+import org.apache.jena.riot.RDFWriter;
+import org.apache.jena.vocabulary.RDF;
 import org.dbpedia.databus.moss.annotation.SVGBuilder;
 import org.dbpedia.databus.moss.views.annotation.AnnotationURL;
 import org.dbpedia.databus.utils.MossUtilityFunctions;
@@ -12,12 +22,30 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
+
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+
 import virtuoso.jena.driver.VirtDataset;
 
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseEntity;
+
+import org.apache.commons.io.IOUtils; 
+import org.springframework.util.ResourceUtils;
+// import net.sf.json.JSONObject;
+// import net.sf.json.JSONSerializer;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 import java.net.URLEncoder;
 import java.net.http.HttpClient;
@@ -74,6 +102,7 @@ public class MetadataService {
                 ResourceFactory.createResource("https://moss.tools.dbpedia.org/annotate?dfid=" +
                         URLEncoder.encode(df, StandardCharsets.UTF_8)));
 
+
         Model annotationModel = ModelFactory.createDefaultModel();
         for(AnnotationURL annotationURL: annotationURLS) {
             annotationModel.add(
@@ -82,26 +111,61 @@ public class MetadataService {
                     ResourceFactory.createResource(annotationURL.getUri()));
         }
 
+        annotationModel.setNsPrefix("moss", "https://dataid.dbpedia.org/moss#");
+        annotationModel.setNsPrefix("subject", "http://purl.org/dc/elements/1.1/subject");
+        annotationModel.setNsPrefix("annotatorName", "moss:annotatorName");
+        annotationModel.setNsPrefix("AnnotationDocument", "moss:AnnotationDocument");
+        annotationModel.setNsPrefix("topic", "https://dfalksdjflksdfjksldfj/topic");
+
+        annotationModel.add(
+            ResourceFactory.createResource(df),
+            ResourceFactory.createProperty(RDF.type.toString()),
+            ResourceFactory.createResource("AnnotationDocument")
+        );
+
+        annotationModel.add(
+            ResourceFactory.createResource(df),
+            ResourceFactory.createProperty("moss:annotatorName"),
+            ResourceFactory.createResource("Simple")
+        );
+
+        // System.out.println(RDF.type.toString());
+        // annotationModel.write(System.out, "JSON-LD");
+        // RDFDataMgr.write(System.out, annotationModel, Lang.TTL);
+
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        
+        RDFDataMgr.write(outputStream, annotationModel, Lang.JSONLD);
+
         String databusFilePath = df.replace(databusBase, "");
         try {
-            saveModel(activityModel,databusFilePath,"activity.ttl");
-            saveModel(annotationModel,databusFilePath,"annotation.ttl");
+            // saveModel(activityModel,databusFilePath,"activity.jsonld");
+            // saveModel(annotationModel,databusFilePath,"annotation.jsonld");
 
-            updateModel(df+"#annotation",  getModel(baseURI,databusFilePath,"activity.ttl"), true);
-            updateModel(df+"#annotation", getModel(baseURI,databusFilePath,"annotation.ttl"), false);
-            log.info("loaded " + df+"#annotation");
+            String jsonString = outputStream.toString("UTF-8");
+            saveModel(annotationModel, jsonString);
+
+            // String localBase = new String("/home/john/Documents/workspace/whk/moss");
+            // Model getActivityModel = getModel(localBase, databusFilePath, "activity.jsonld");
+            // Model getAnnotationModel = getModel(localBase, databusFilePath, "annotation.jsonld");
+            log.info("databusFilePath");
+            // updateModel(df+"#annotation",  getModel(baseURI,databusFilePath,"activity.ttl"), true);
+            // updateModel(df+"#annotation", getModel(baseURI,databusFilePath,"annotation.ttl"), false);
+            // log.info("loaded " + df+"#annotation");
         } catch (IOException ioe) {
             ioe.printStackTrace();
         }
 
-        File annotationSVGFile = new File(baseDir, databusFilePath + "/" + "annotation.svg");
-        try {
-            FileOutputStream fos = new FileOutputStream(annotationSVGFile);
-            IOUtils.write(SVGBuilder.svgString2dec.replace("#NO", String.valueOf(annotationURLS.size())),fos,StandardCharsets.UTF_8);
-            fos.close();
-        } catch (IOException ioe) {
-            ioe.printStackTrace();
-        }
+        // saveAnnotationsSVG(databusFilePath, annotationURLS);
+
+        // File annotationSVGFile = new File(baseDir, databusFilePath + "/" + "annotation.svg");
+        // try {
+        //     FileOutputStream fos = new FileOutputStream(annotationSVGFile);
+        //     IOUtils.write(SVGBuilder.svgString2dec.replace("#NO", String.valueOf(annotationURLS.size())),fos,StandardCharsets.UTF_8);
+        //     fos.close();
+        // } catch (IOException ioe) {
+        //     ioe.printStackTrace();
+        // }
 
     }
 
@@ -124,18 +188,104 @@ public class MetadataService {
     }
 
 
-    private void saveModel(Model model, String databusIdPath, String result) throws IOException {
+    private void saveAnnotationsSVG(String databusFilePath, List<AnnotationURL> annotationURLS) {
+        String localBase = new String("/home/john/Documents/workspace/whk/moss");
+        File annotationSVGFile = new File(localBase, "volume" + databusFilePath + "/" + "annotation.svg");
+        try {
+            FileOutputStream fos = new FileOutputStream(annotationSVGFile);
+            IOUtils.write(SVGBuilder.svgString2dec.replace("#NO", String.valueOf(annotationURLS.size())),fos,StandardCharsets.UTF_8);
+            fos.close();
+        } catch (IOException ioe) {
+            ioe.printStackTrace();
+        }
+    }
+
+
+    //TODO: determine correct path to save model
+    private void saveModel(Model model, String jsonString) throws IOException {
+        // String localBase = new String("/home/john/Documents/workspace/whk/moss");
+        // File resultFile = new File(localBase, "volume" + databusIdPath + "/" + result);
+
+        // File modelDir = resultFile.getParentFile();
+        // modelDir.mkdirs();
+        // FileOutputStream os = new FileOutputStream(resultFile);
+        // RDFDataMgr.write(os, model, RDFFormat.JSONLD);
+
+        // Gson gson = new Gson();
+        // FileReader reader = new FileReader(resultFile);
+        // JsonElement json = gson.fromJson(reader, JsonElement.class);
+
+        // String jsonString = gson.toJson(json);
+
+        //FIXME: 
+        /*
+         * 1. determine correct group,
+         * 2. repo path 
+         * 3. filename
+         * 4. Build correct endpoint
+         * 5. execute http request
+         */
+
+        String endpoint = "http://localhost:3002/graph/save?repo=oeo&path=cement/annotation.jsonld";
+
+
+        RestTemplate restTemplate = new RestTemplate();
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Accept", "application/ld+json");
+        headers.add("Content-Type", "application/ld+json");
+
+        HttpEntity<String> entity = new HttpEntity<String>(jsonString, headers);
+        System.out.println(jsonString);
+        try {
+            URI url = new URI(endpoint);
+            ResponseEntity<String> response = restTemplate.postForEntity(url, entity, String.class);
+            String serverResponse = response.getBody();
+            System.out.println(serverResponse);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void saveModelLegacy(Model model, String databusIdPath, String result) throws IOException {
         File resultFile = new File(baseDir, databusIdPath + "/" + result);
         resultFile.getParentFile().mkdirs();
         FileOutputStream os = new FileOutputStream(resultFile);
         model.write(os, "TURTLE");
     }
 
+
+    //TODO:
+    /*
+     *  1. gstore kriegt jsonld + repo + path im repo
+     *     - body is jsonld + request parameter im post (path + repo)
+     *  2. schreibt datei in den pfad + local gitrepo
+     *  3. schreibt file content ins virtuoso
+     * 
+     *  D.h. reimplement
+     *  1. saveModel
+     *  2. getModel 
+     */
+    //Stackoverflow for Http request + json body https://stackoverflow.com/questions/7181534/http-post-using-json-in-java
+
     File[] listFiles(String path) {
         return new File(baseDir, path).listFiles();
     }
 
     Model getModel(String baseURI, String databusIdPath, String result) throws IOException {
+        File resultFile = new File(baseDir, databusIdPath + "/" + result);
+        if (resultFile.exists()) {
+            String fqBaseURI = baseURI.replaceAll("/$","") + "/" + databusIdPath + "/";
+            log.info("read "+fqBaseURI);
+            Model model = ModelFactory.createDefaultModel();
+            // model.read(new FileInputStream(resultFile),fqBaseURI,"TURTLE");
+            model.read(new FileInputStream(resultFile),fqBaseURI,"JSON-LD");
+            return model;
+        } else {
+            return null;
+        }
+    }
+
+    Model getModelLegacy(String baseURI, String databusIdPath, String result) throws IOException {
         File resultFile = new File(baseDir, databusIdPath + "/" + result);
         if (resultFile.exists()) {
             String fqBaseURI = baseURI.replaceAll("/$","") + "/" + databusIdPath + "/";
