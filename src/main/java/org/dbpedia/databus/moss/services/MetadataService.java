@@ -1,6 +1,7 @@
 package org.dbpedia.databus.moss.services;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.entity.FileEntity;
 import org.apache.http.entity.StringEntity;
 import org.apache.jena.atlas.json.JsonObject;
@@ -9,6 +10,7 @@ import org.apache.jena.query.*;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Property;
+import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFDataMgr;
@@ -47,11 +49,13 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URLEncoder;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
+import java.security.cert.URICertStoreParameters;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -87,86 +91,89 @@ public class MetadataService {
         db.close();
     }
 
-    public void createAnnotation(String df, List<AnnotationURL> annotationURLS) {
+    public String buildURL(String scheme, String baseURL, List<String> pathSegments) {
+        String identifier = "";
+        URIBuilder builder = new URIBuilder();
+        try {
+            builder.setScheme("http");
+            builder.setHost(baseURL);
+            builder.setPathSegments(pathSegments);
 
-        String databusBase = MossUtilityFunctions.extractBaseFromURL(df);
+            identifier = builder.build().toString();
+        } catch (URISyntaxException e) {
+            e.printStackTrace();
+        }
+        return  identifier;
+    }
 
-        ModActivityMetadata mam = new ModActivityMetadata(df, "http://mods.tools.dbpedia.org/ns/demo#AnnotationMod");
-        mam.addModResult("annotation.ttl", "http://dataid.dbpedia.org/ns/mods/core#wasDerivedFrom");
-        //svg
-        mam.addModResult("annotation.svg", "http://dataid.dbpedia.org/ns/mods/core#svgDerivedFrom");
-        Model activityModel = mam.getModel();
-        activityModel.add(
-                ResourceFactory.createResource("annotation.svg"),
-                ResourceFactory.createProperty("http://www.w3.org/2000/01/rdf-schema#seeAlso"),
-                ResourceFactory.createResource("https://moss.tools.dbpedia.org/annotate?dfid=" +
-                        URLEncoder.encode(df, StandardCharsets.UTF_8)));
+    public String buildURL(String scheme, String baseURL, List<String> pathSegments, String repository, String pathParam) {
+        //TODO: maybe sanitize?
+        // String endpoint = "http://localhost:3002/graph/save?repo=oeo&path=cement/annotation.jsonld";
+        String endpoint = new String(scheme + "://" + baseURL + "/graph" + "/save?" + "repo=" + repository + "&path=" + pathParam + "/annoataion.jsonld");
+        return endpoint;
+    }
 
 
+    public String creatFileIdentifier(String baseURLRaw, String annoationName, String resourcePathRaw) {
+        final String regexResourcePrefix = "http[s]?://";
+        List<String> pathSegments = new ArrayList<String>();
+        pathSegments.add("annotations");
+        pathSegments.add(annoationName);
+        pathSegments.add(resourcePathRaw.replaceAll(regexResourcePrefix, ""));
+        return buildURL("http", baseURLRaw.replaceAll(regexResourcePrefix, ""), pathSegments);
+    }
+
+    public URI createEndpointURL(String scheme, String gStoreBaseURL, String repository, String path) {
+        // String endpoint = "http://localhost:3002/graph/save?repo=oeo&path=cement/annotation.jsonld";
+
+        List<String> pathSegments = new ArrayList<String>();
+        pathSegments.add("graph");
+        pathSegments.add("save");
+        pathSegments.add("annotations.jsonld");
+        URI endpoint = null;
+
+        try {
+            endpoint = new URI(buildURL("http", gStoreBaseURL, pathSegments, repository, path));
+        } catch (URISyntaxException e) {
+            // TODO: handle exception
+            e.printStackTrace();
+        }
+        return endpoint;
+    }
+
+
+    public void createAnnotation(String databusIdentifier, List<AnnotationURL> annotationURLS) {
+
+        //TODO: add read to check wheter annotationdocumentresource already exists
         Model annotationModel = ModelFactory.createDefaultModel();
+
+        String annotatorName = "simple";
+        String dcNamespace = "http://purl.org/dc/terms/";
+        String mossNamespace = "https://dataid.dbpedia.org/moss#";
+
+        String fileIdentifier = creatFileIdentifier(this.baseURI, annotatorName, databusIdentifier);
+        fileIdentifier = "http://localhost:8080/data/annotations/simple/databus.testing.org/cement";
+
+        // Create resources
+        Resource databusResource = ResourceFactory.createResource(databusIdentifier);
+        Resource annotationDocumentResource = ResourceFactory.createResource(fileIdentifier);
+
         for(AnnotationURL annotationURL: annotationURLS) {
             annotationModel.add(
-                    ResourceFactory.createResource(df),
-                    ResourceFactory.createProperty("http://purl.org/dc/elements/1.1/subject"),
+                    databusResource,
+                    ResourceFactory.createProperty(dcNamespace + "subject"),
                     ResourceFactory.createResource(annotationURL.getUri()));
         }
 
-        annotationModel.setNsPrefix("moss", "https://dataid.dbpedia.org/moss#");
-        annotationModel.setNsPrefix("subject", "http://purl.org/dc/elements/1.1/subject");
-        annotationModel.setNsPrefix("annotatorName", "moss:annotatorName");
-        annotationModel.setNsPrefix("AnnotationDocument", "moss:AnnotationDocument");
-        annotationModel.setNsPrefix("topic", "https://dfalksdjflksdfjksldfj/topic");
+        annotationModel.add(annotationDocumentResource, ResourceFactory.createProperty(dcNamespace + "relation"), databusResource);
+        annotationModel.add(annotationDocumentResource, RDF.type, ResourceFactory.createResource("https://dataid.dbpedia.org/moss#AnnotationDocument"));
+        annotationModel.add(annotationDocumentResource, ResourceFactory.createProperty(mossNamespace + "annotatorName"), annotatorName);
 
-        annotationModel.add(
-            ResourceFactory.createResource(df),
-            ResourceFactory.createProperty(RDF.type.toString()),
-            ResourceFactory.createResource("AnnotationDocument")
-        );
-
-        annotationModel.add(
-            ResourceFactory.createResource(df),
-            ResourceFactory.createProperty("moss:annotatorName"),
-            ResourceFactory.createResource("Simple")
-        );
-
-        // System.out.println(RDF.type.toString());
-        // annotationModel.write(System.out, "JSON-LD");
-        // RDFDataMgr.write(System.out, annotationModel, Lang.TTL);
-
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        
-        RDFDataMgr.write(outputStream, annotationModel, Lang.JSONLD);
-
-        String databusFilePath = df.replace(databusBase, "");
         try {
-            // saveModel(activityModel,databusFilePath,"activity.jsonld");
-            // saveModel(annotationModel,databusFilePath,"annotation.jsonld");
-
-            String jsonString = outputStream.toString("UTF-8");
-            saveModel(annotationModel, jsonString);
-
-            // String localBase = new String("/home/john/Documents/workspace/whk/moss");
-            // Model getActivityModel = getModel(localBase, databusFilePath, "activity.jsonld");
-            // Model getAnnotationModel = getModel(localBase, databusFilePath, "annotation.jsonld");
-            log.info("databusFilePath");
-            // updateModel(df+"#annotation",  getModel(baseURI,databusFilePath,"activity.ttl"), true);
-            // updateModel(df+"#annotation", getModel(baseURI,databusFilePath,"annotation.ttl"), false);
-            // log.info("loaded " + df+"#annotation");
+            saveModel(annotationModel);
         } catch (IOException ioe) {
             ioe.printStackTrace();
         }
-
-        // saveAnnotationsSVG(databusFilePath, annotationURLS);
-
-        // File annotationSVGFile = new File(baseDir, databusFilePath + "/" + "annotation.svg");
-        // try {
-        //     FileOutputStream fos = new FileOutputStream(annotationSVGFile);
-        //     IOUtils.write(SVGBuilder.svgString2dec.replace("#NO", String.valueOf(annotationURLS.size())),fos,StandardCharsets.UTF_8);
-        //     fos.close();
-        // } catch (IOException ioe) {
-        //     ioe.printStackTrace();
-        // }
-
     }
 
     public List<AnnotationURL> getAnnotations(String df) {
@@ -202,21 +209,7 @@ public class MetadataService {
 
 
     //TODO: determine correct path to save model
-    private void saveModel(Model model, String jsonString) throws IOException {
-        // String localBase = new String("/home/john/Documents/workspace/whk/moss");
-        // File resultFile = new File(localBase, "volume" + databusIdPath + "/" + result);
-
-        // File modelDir = resultFile.getParentFile();
-        // modelDir.mkdirs();
-        // FileOutputStream os = new FileOutputStream(resultFile);
-        // RDFDataMgr.write(os, model, RDFFormat.JSONLD);
-
-        // Gson gson = new Gson();
-        // FileReader reader = new FileReader(resultFile);
-        // JsonElement json = gson.fromJson(reader, JsonElement.class);
-
-        // String jsonString = gson.toJson(json);
-
+    private void saveModel(Model annotationModel) throws IOException {
         //FIXME: 
         /*
          * 1. determine correct group,
@@ -225,8 +218,15 @@ public class MetadataService {
          * 4. Build correct endpoint
          * 5. execute http request
          */
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        RDFDataMgr.write(outputStream, annotationModel, Lang.JSONLD);
 
-        String endpoint = "http://localhost:3002/graph/save?repo=oeo&path=cement/annotation.jsonld";
+        String jsonString = outputStream.toString("UTF-8");
+
+        // String endpoint = "http://localhost:3002/graph/save?repo=oeo&path=cement/annotation.jsonld";
+        String baseURL = "localhost:3002";
+
+        URI endpoint = createEndpointURL("http", baseURL, "oeo", "cement");
 
 
         RestTemplate restTemplate = new RestTemplate();
@@ -237,8 +237,9 @@ public class MetadataService {
         HttpEntity<String> entity = new HttpEntity<String>(jsonString, headers);
         System.out.println(jsonString);
         try {
-            URI url = new URI(endpoint);
-            ResponseEntity<String> response = restTemplate.postForEntity(url, entity, String.class);
+            // String endpoint = "http://localhost:3002/graph/save?repo=oeo&path=cement/annotation.jsonld";
+            // URI url = new URI(endpoint);
+            ResponseEntity<String> response = restTemplate.postForEntity(endpoint, entity, String.class);
             String serverResponse = response.getBody();
             System.out.println(serverResponse);
         } catch (Exception e) {
@@ -327,8 +328,9 @@ public class MetadataService {
 
         String databusFilePath = df.replace(databusBase, "");
 
-        saveModel(activityModel,databusFilePath,"api-demo-activity.ttl");
-        saveModel(push_model,databusFilePath,"api-demo-data.ttl");
+        //FIXME: functions signature change -> figure out appropriate refactoring
+        // saveModel(activityModel,databusFilePath,"api-demo-activity.ttl");
+        // saveModel(push_model,databusFilePath,"api-demo-data.ttl");
 
         updateModel(df+graph_identifier,  getModel(baseURI,databusFilePath,"api-demo-activity.ttl"), true);
         updateModel(df+graph_identifier, getModel(baseURI,databusFilePath,"api-demo-data.ttl"), false);
