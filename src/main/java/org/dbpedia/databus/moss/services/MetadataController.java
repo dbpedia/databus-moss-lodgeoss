@@ -1,6 +1,7 @@
 package org.dbpedia.databus.moss.services;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -35,8 +36,10 @@ import com.google.gson.Gson;
 
 import org.apache.jena.atlas.json.io.parserjavacc.javacc.JSON_Parser;
 import org.apache.jena.atlas.json.io.parserjavacc.javacc.Token;
+import org.apache.jena.rdf.model.Model;
 import org.apache.jena.riot.writer.JsonLDWriter;
 import org.apache.jena.sparql.util.Context;
+import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFFormat;
 
 @RestController
@@ -53,6 +56,23 @@ public class MetadataController {
         this.metadataService = metadataService;
         this.gson = gson;
     }
+
+    @RequestMapping("/get")
+    public ResponseEntity<String> getGraph() {
+        String endpoint = "localhost:3002/graph/read?repo=oeo&path=cement/annotation.jsonld";
+        Model model = metadataService.getModel(endpoint);
+
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        model.write(out, "jsonld");
+
+        HttpHeaders header = new HttpHeaders();
+        ResponseEntity<String> response = ResponseEntity.ok()
+                .headers(header)
+                .contentType(MediaType.TEXT_PLAIN)
+                .body(out.toString());
+        return response;
+    }
+
 
     //TODO: If data is plain json this will fail => fix
     @RequestMapping(value = {"/annotate"})

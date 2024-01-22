@@ -15,6 +15,7 @@ import org.apache.jena.rdf.model.ResourceFactory;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.riot.RDFFormat;
+import org.apache.jena.riot.RDFParser;
 import org.apache.jena.riot.RDFWriter;
 import org.apache.jena.vocabulary.RDF;
 import org.dbpedia.databus.moss.annotation.SVGBuilder;
@@ -24,10 +25,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
+import com.helger.commons.io.stream.StringInputStream;
 
 import virtuoso.jena.driver.VirtDataset;
 
@@ -48,6 +51,8 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URLEncoder;
@@ -109,16 +114,16 @@ public class MetadataService {
     public String buildURL(String scheme, String baseURL, List<String> pathSegments, String repository, String pathParam) {
         //TODO: maybe sanitize?
         // String endpoint = "http://localhost:3002/graph/save?repo=oeo&path=cement/annotation.jsonld";
-        String endpoint = new String(scheme + "://" + baseURL + "/graph" + "/save?" + "repo=" + repository + "&path=" + pathParam + "/annoataion.jsonld");
+        String endpoint = new String(scheme + "://" + baseURL + "/graph" + "/save?" + "repo=" + repository + "&path=" + pathParam + "/annotation.jsonld");
         return endpoint;
     }
 
 
-    public String creatFileIdentifier(String baseURLRaw, String annoationName, String resourcePathRaw) {
+    public String creatFileIdentifier(String baseURLRaw, String annotationName, String resourcePathRaw) {
         final String regexResourcePrefix = "http[s]?://";
         List<String> pathSegments = new ArrayList<String>();
         pathSegments.add("annotations");
-        pathSegments.add(annoationName);
+        pathSegments.add(annotationName);
         pathSegments.add(resourcePathRaw.replaceAll(regexResourcePrefix, ""));
         return buildURL("http", baseURLRaw.replaceAll(regexResourcePrefix, ""), pathSegments);
     }
@@ -207,7 +212,6 @@ public class MetadataService {
         }
     }
 
-
     //TODO: determine correct path to save model
     private void saveModel(Model annotationModel) throws IOException {
         //FIXME: 
@@ -215,19 +219,14 @@ public class MetadataService {
          * 1. determine correct group,
          * 2. repo path 
          * 3. filename
-         * 4. Build correct endpoint
-         * 5. execute http request
          */
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         RDFDataMgr.write(outputStream, annotationModel, Lang.JSONLD);
 
+        String baseURL = "localhost:3002";
         String jsonString = outputStream.toString("UTF-8");
 
-        // String endpoint = "http://localhost:3002/graph/save?repo=oeo&path=cement/annotation.jsonld";
-        String baseURL = "localhost:3002";
-
         URI endpoint = createEndpointURL("http", baseURL, "oeo", "cement");
-
 
         RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
@@ -254,7 +253,6 @@ public class MetadataService {
         model.write(os, "TURTLE");
     }
 
-
     //TODO:
     /*
      *  1. gstore kriegt jsonld + repo + path im repo
@@ -272,18 +270,29 @@ public class MetadataService {
         return new File(baseDir, path).listFiles();
     }
 
-    Model getModel(String baseURI, String databusIdPath, String result) throws IOException {
-        File resultFile = new File(baseDir, databusIdPath + "/" + result);
-        if (resultFile.exists()) {
-            String fqBaseURI = baseURI.replaceAll("/$","") + "/" + databusIdPath + "/";
-            log.info("read "+fqBaseURI);
-            Model model = ModelFactory.createDefaultModel();
-            // model.read(new FileInputStream(resultFile),fqBaseURI,"TURTLE");
-            model.read(new FileInputStream(resultFile),fqBaseURI,"JSON-LD");
-            return model;
-        } else {
-            return null;
+    Model getModel(String endpoint) {
+
+        endpoint = "http://localhost:3002/graph/read?repo=oeo&path=cement/annotation.jsonld";
+
+        RestTemplate restTemplate = new RestTemplate();
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Accept", "application/ld+json");
+        headers.add("Content-Type", "application/ld+json");
+
+        Model model = ModelFactory.createDefaultModel();
+
+        try {
+            ResponseEntity<String> response = restTemplate.getForEntity(endpoint, String.class);
+            String serverResponse = response.getBody();
+            ByteArrayInputStream targetStream = new ByteArrayInputStream(serverResponse.getBytes("UTF-8"));
+
+            model.read(targetStream, "", "jsonld");
+            RDFDataMgr.write(System.out, model, Lang.JSONLD);
+        } catch (RestClientException | UnsupportedEncodingException exception) {
+            exception.printStackTrace();
         }
+
+        return model;
     }
 
     Model getModelLegacy(String baseURI, String databusIdPath, String result) throws IOException {
@@ -332,8 +341,8 @@ public class MetadataService {
         // saveModel(activityModel,databusFilePath,"api-demo-activity.ttl");
         // saveModel(push_model,databusFilePath,"api-demo-data.ttl");
 
-        updateModel(df+graph_identifier,  getModel(baseURI,databusFilePath,"api-demo-activity.ttl"), true);
-        updateModel(df+graph_identifier, getModel(baseURI,databusFilePath,"api-demo-data.ttl"), false);
+        // updateModel(df+graph_identifier,  getModel(baseURI,databusFilePath,"api-demo-activity.ttl"), true);
+        // updateModel(df+graph_identifier, getModel(baseURI,databusFilePath,"api-demo-data.ttl"), false);
         log.info("loaded " + df+graph_identifier);
 
 
