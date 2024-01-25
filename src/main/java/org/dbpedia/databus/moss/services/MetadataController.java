@@ -1,27 +1,16 @@
 package org.dbpedia.databus.moss.services;
 
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.FileSystems;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.sound.sampled.AudioFormat.Encoding;
-
-// import org.apache.jena.atlas.web.MediaType;
 import org.springframework.core.io.Resource;
 import org.dbpedia.databus.moss.views.annotation.AnnotationURL;
-import org.dbpedia.databus.utils.MossUtilityFunctions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpHeaders;
@@ -35,12 +24,8 @@ import org.springframework.http.MediaType;
 import com.google.gson.Gson;
 
 import org.apache.jena.atlas.json.io.parserjavacc.javacc.JSON_Parser;
-import org.apache.jena.atlas.json.io.parserjavacc.javacc.Token;
 import org.apache.jena.rdf.model.Model;
-import org.apache.jena.riot.writer.JsonLDWriter;
-import org.apache.jena.sparql.util.Context;
-import org.apache.jena.riot.Lang;
-import org.apache.jena.riot.RDFFormat;
+import org.apache.jena.rdf.model.ModelFactory;
 
 @RestController
 @RequestMapping("api")
@@ -59,8 +44,11 @@ public class MetadataController {
 
     @RequestMapping("/get")
     public ResponseEntity<String> getGraph() {
-        String endpoint = "localhost:3002/graph/read?repo=oeo&path=cement/annotation.jsonld";
-        Model model = metadataService.getModel(endpoint);
+        // String endpoint = "http://localhost:3002/graph/read?repo=oeo&path=cement/annotation.jsonld";
+        String endpoint = "http://localhost:3002/graph/read?repo=oeo&path=cement/annotation.jsonld";
+
+        Model model = ModelFactory.createDefaultModel();
+        model = metadataService.getModel(model, endpoint);
 
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         model.write(out, "jsonld");
@@ -73,8 +61,6 @@ public class MetadataController {
         return response;
     }
 
-
-    //TODO: If data is plain json this will fail => fix
     @RequestMapping(value = {"/annotate"})
     public AnnotationRequest annotate(@RequestBody String json) {
 

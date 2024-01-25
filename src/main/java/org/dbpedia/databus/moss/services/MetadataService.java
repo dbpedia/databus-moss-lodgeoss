@@ -2,21 +2,14 @@ package org.dbpedia.databus.moss.services;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.http.client.utils.URIBuilder;
-import org.apache.http.entity.FileEntity;
-import org.apache.http.entity.StringEntity;
-import org.apache.jena.atlas.json.JsonObject;
-import org.apache.jena.atlas.json.JsonString;
 import org.apache.jena.query.*;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
-import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFDataMgr;
-import org.apache.jena.riot.RDFFormat;
 import org.apache.jena.riot.RDFParser;
-import org.apache.jena.riot.RDFWriter;
 import org.apache.jena.vocabulary.RDF;
 import org.dbpedia.databus.moss.annotation.SVGBuilder;
 import org.dbpedia.databus.moss.views.annotation.AnnotationURL;
@@ -25,12 +18,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
-
-import com.google.gson.Gson;
-import com.google.gson.JsonElement;
-import com.helger.commons.io.stream.StringInputStream;
 
 import virtuoso.jena.driver.VirtDataset;
 
@@ -38,20 +28,12 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 
-import org.apache.commons.io.IOUtils; 
-import org.springframework.util.ResourceUtils;
-// import net.sf.json.JSONObject;
-// import net.sf.json.JSONSerializer;
-
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.FileReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -60,7 +42,6 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
-import java.security.cert.URICertStoreParameters;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -96,11 +77,11 @@ public class MetadataService {
         db.close();
     }
 
-    public String buildURL(String scheme, String baseURL, List<String> pathSegments) {
+    public String buildURL(String baseURL, List<String> pathSegments) {
         String identifier = "";
-        URIBuilder builder = new URIBuilder();
+        // URIBuilder builder = new URIBuilder();
         try {
-            builder.setScheme("http");
+            URIBuilder builder = new URIBuilder(baseURL);
             builder.setHost(baseURL);
             builder.setPathSegments(pathSegments);
 
@@ -111,26 +92,49 @@ public class MetadataService {
         return  identifier;
     }
 
-    public String buildURL(String scheme, String baseURL, List<String> pathSegments, String repository, String pathParam) {
-        //TODO: maybe sanitize?
+    public String buildURL(String baseURL, String[] pathValues) {
         // String endpoint = "http://localhost:3002/graph/save?repo=oeo&path=cement/annotation.jsonld";
-        String endpoint = new String(scheme + "://" + baseURL + "/graph" + "/save?" + "repo=" + repository + "&path=" + pathParam + "/annotation.jsonld");
-        return endpoint;
+        String identifier = "";
+        String path = "graph/save";
+        try {
+            URIBuilder builder = new URIBuilder(baseURL);
+            builder.setPath(path);
+            builder.setParameter("repo", pathValues[0]);
+            builder.setParameter("path", pathValues[1]);
+
+            identifier = builder.build().toString();
+        } catch (URISyntaxException e) {
+            e.printStackTrace();
+        }
+        return  identifier.replaceAll("%2F", "/");
     }
 
 
-    public String creatFileIdentifier(String baseURLRaw, String annotationName, String resourcePathRaw) {
+    public String creatFileIdentifier(String baseURLRaw, String annotationName, String databusIdentifier) {
         final String regexResourcePrefix = "http[s]?://";
         List<String> pathSegments = new ArrayList<String>();
+
+        databusIdentifier = databusIdentifier.replaceAll(regexResourcePrefix, "");
+        String[] resourceSegments = databusIdentifier.split("/");
+
         pathSegments.add("annotations");
         pathSegments.add(annotationName);
-        pathSegments.add(resourcePathRaw.replaceAll(regexResourcePrefix, ""));
-        return buildURL("http", baseURLRaw.replaceAll(regexResourcePrefix, ""), pathSegments);
+
+        for (String segment : resourceSegments) {
+            pathSegments.add(segment);
+        }
+
+        pathSegments.add("annotations.jsonld");
+
+        return buildURL(baseURLRaw, pathSegments);
+    }
+
+    public String createGStoreIdentifier(String[] pathValues) {
+        String baseURL = "localhost:3002";
+        return buildURL(baseURL, pathValues);
     }
 
     public URI createEndpointURL(String scheme, String gStoreBaseURL, String repository, String path) {
-        // String endpoint = "http://localhost:3002/graph/save?repo=oeo&path=cement/annotation.jsonld";
-
         List<String> pathSegments = new ArrayList<String>();
         pathSegments.add("graph");
         pathSegments.add("save");
@@ -138,32 +142,49 @@ public class MetadataService {
         URI endpoint = null;
 
         try {
-            endpoint = new URI(buildURL("http", gStoreBaseURL, pathSegments, repository, path));
+            endpoint = new URI(buildURL(gStoreBaseURL, pathSegments));
         } catch (URISyntaxException e) {
-            // TODO: handle exception
             e.printStackTrace();
         }
         return endpoint;
     }
 
+    List<String> createPathSegments(String annotationName, String resourcePathRaw) {
+        final String regexResourcePrefix = "http[s]?://";
+        List<String> pathSegments = new ArrayList<String>();
 
-    public void createAnnotation(String databusIdentifier, List<AnnotationURL> annotationURLS) {
+        resourcePathRaw = resourcePathRaw.replaceAll(regexResourcePrefix, "");
+        String[] resourceSegments = resourcePathRaw.split("/");
 
-        //TODO: add read to check wheter annotationdocumentresource already exists
-        Model annotationModel = ModelFactory.createDefaultModel();
+        pathSegments.add("annotations");
+        pathSegments.add(annotationName);
+
+        for (String segment : resourceSegments) {
+            pathSegments.add(segment);
+        }
+        pathSegments.add("annotations.jsonld");
+
+        return pathSegments;
+    }
+
+    public void createAnnotation(String databusIdentifier, List<AnnotationURL> annotationURLs) {
 
         String annotatorName = "simple";
         String dcNamespace = "http://purl.org/dc/terms/";
         String mossNamespace = "https://dataid.dbpedia.org/moss#";
-
         String fileIdentifier = creatFileIdentifier(this.baseURI, annotatorName, databusIdentifier);
-        fileIdentifier = "http://localhost:8080/data/annotations/simple/databus.testing.org/cement";
+        String segments = fileIdentifier.replace(this.baseURI + "/", "");
+        String[] pathValues = segments.split("/", 2);
+        String gStoreIdentifier = createGStoreIdentifier(pathValues);
+
+        Model annotationModel = ModelFactory.createDefaultModel();
+        annotationModel = getModel(annotationModel, gStoreIdentifier);
 
         // Create resources
         Resource databusResource = ResourceFactory.createResource(databusIdentifier);
         Resource annotationDocumentResource = ResourceFactory.createResource(fileIdentifier);
 
-        for(AnnotationURL annotationURL: annotationURLS) {
+        for(AnnotationURL annotationURL: annotationURLs) {
             annotationModel.add(
                     databusResource,
                     ResourceFactory.createProperty(dcNamespace + "subject"),
@@ -175,7 +196,7 @@ public class MetadataService {
         annotationModel.add(annotationDocumentResource, ResourceFactory.createProperty(mossNamespace + "annotatorName"), annotatorName);
 
         try {
-            saveModel(annotationModel);
+            saveModel(annotationModel, gStoreIdentifier);
         } catch (IOException ioe) {
             ioe.printStackTrace();
         }
@@ -212,21 +233,14 @@ public class MetadataService {
         }
     }
 
-    //TODO: determine correct path to save model
-    private void saveModel(Model annotationModel) throws IOException {
-        //FIXME: 
-        /*
-         * 1. determine correct group,
-         * 2. repo path 
-         * 3. filename
-         */
+    private void saveModel(Model annotationModel, String gStoreEndpoint) throws IOException {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         RDFDataMgr.write(outputStream, annotationModel, Lang.JSONLD);
 
-        String baseURL = "localhost:3002";
+        // String baseURL = "localhost:3002";
         String jsonString = outputStream.toString("UTF-8");
 
-        URI endpoint = createEndpointURL("http", baseURL, "oeo", "cement");
+        // URI endpoint = createEndpointURL("http", baseURL, respository, path);
 
         RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
@@ -236,8 +250,8 @@ public class MetadataService {
         HttpEntity<String> entity = new HttpEntity<String>(jsonString, headers);
         System.out.println(jsonString);
         try {
-            // String endpoint = "http://localhost:3002/graph/save?repo=oeo&path=cement/annotation.jsonld";
-            // URI url = new URI(endpoint);
+            // String endpoint = "http://localhost:3002/graph/save?repo=oeo&path=/simple/cement/annotation.jsonld";
+            URI endpoint = new URI(gStoreEndpoint);
             ResponseEntity<String> response = restTemplate.postForEntity(endpoint, entity, String.class);
             String serverResponse = response.getBody();
             System.out.println(serverResponse);
@@ -270,26 +284,34 @@ public class MetadataService {
         return new File(baseDir, path).listFiles();
     }
 
-    Model getModel(String endpoint) {
-
-        endpoint = "http://localhost:3002/graph/read?repo=oeo&path=cement/annotation.jsonld";
+    Model getModel(Model model, String gStoreEndpoint) {
 
         RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
         headers.add("Accept", "application/ld+json");
         headers.add("Content-Type", "application/ld+json");
 
-        Model model = ModelFactory.createDefaultModel();
-
         try {
+            gStoreEndpoint = gStoreEndpoint.replaceAll("save", "read");
+            URI endpoint = new URI(gStoreEndpoint);
             ResponseEntity<String> response = restTemplate.getForEntity(endpoint, String.class);
             String serverResponse = response.getBody();
+            System.out.println(serverResponse);
             ByteArrayInputStream targetStream = new ByteArrayInputStream(serverResponse.getBytes("UTF-8"));
 
-            model.read(targetStream, "", "jsonld");
-            RDFDataMgr.write(System.out, model, Lang.JSONLD);
-        } catch (RestClientException | UnsupportedEncodingException exception) {
-            exception.printStackTrace();
+            System.out.println(targetStream);
+            model.write(System.out, "jsonld");
+
+            RDFParser.source(targetStream).forceLang(Lang.JSONLD).parse(model);
+        } catch (URISyntaxException e) {
+            e.printStackTrace();
+        } catch (HttpClientErrorException e) {
+            //: Model not found -> return empty model
+            return model;
+        } catch (RestClientException e) {
+            e.printStackTrace();
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
         }
 
         return model;
@@ -321,7 +343,6 @@ public class MetadataService {
     public void submit_model(String df, Model push_model) throws IOException {
 
         String databusBase = MossUtilityFunctions.extractBaseFromURL(df);
-
         String graph_identifier = "#api-demo";
 
         ModActivityMetadata mam = new ModActivityMetadata(df, "http://mods.tools.dbpedia.org/ns/demo#ApiDemoMod");
