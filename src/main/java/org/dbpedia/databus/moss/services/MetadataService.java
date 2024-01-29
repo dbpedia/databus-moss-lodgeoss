@@ -42,7 +42,10 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 @Service
@@ -82,7 +85,6 @@ public class MetadataService {
         // URIBuilder builder = new URIBuilder();
         try {
             URIBuilder builder = new URIBuilder(baseURL);
-            builder.setHost(baseURL);
             builder.setPathSegments(pathSegments);
 
             identifier = builder.build().toString();
@@ -96,11 +98,12 @@ public class MetadataService {
         // String endpoint = "http://localhost:3002/graph/save?repo=oeo&path=cement/annotation.jsonld";
         String identifier = "";
         String path = "graph/save";
+        int lastIndex = pathValues.length;
         try {
             URIBuilder builder = new URIBuilder(baseURL);
             builder.setPath(path);
-            builder.setParameter("repo", pathValues[0]);
-            builder.setParameter("path", pathValues[1]);
+            builder.setParameter("repo", pathValues[lastIndex - 2]);
+            builder.setParameter("path", pathValues[lastIndex - 1]);
 
             identifier = builder.build().toString();
         } catch (URISyntaxException e) {
@@ -130,7 +133,7 @@ public class MetadataService {
     }
 
     public String createGStoreIdentifier(String[] pathValues) {
-        String baseURL = "localhost:3002";
+        String baseURL = "http://localhost:3002";
         return buildURL(baseURL, pathValues);
     }
 
@@ -171,6 +174,7 @@ public class MetadataService {
 
         String annotatorName = "simple";
         String dcNamespace = "http://purl.org/dc/terms/";
+        String provNamespace = "http://www.w3.org/ns/prov:";
         String mossNamespace = "https://dataid.dbpedia.org/moss#";
         String fileIdentifier = creatFileIdentifier(this.baseURI, annotatorName, databusIdentifier);
         String segments = fileIdentifier.replace(this.baseURI + "/", "");
@@ -190,10 +194,17 @@ public class MetadataService {
                     ResourceFactory.createProperty(dcNamespace + "subject"),
                     ResourceFactory.createResource(annotationURL.getUri()));
         }
+        
+        String startedAtTime = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").format(LocalDateTime.now());
 
         annotationModel.add(annotationDocumentResource, ResourceFactory.createProperty(dcNamespace + "relation"), databusResource);
-        annotationModel.add(annotationDocumentResource, RDF.type, ResourceFactory.createResource("https://dataid.dbpedia.org/moss#AnnotationDocument"));
+        annotationModel.add(annotationDocumentResource, RDF.type, ResourceFactory.createResource("https://dataid.dbpedia.org/moss#SimpleAnnotationMod"));
         annotationModel.add(annotationDocumentResource, ResourceFactory.createProperty(mossNamespace + "annotatorName"), annotatorName);
+
+        annotationModel.add(annotationDocumentResource, ResourceFactory.createProperty(provNamespace, "used"), databusResource);
+        annotationModel.add(annotationDocumentResource, ResourceFactory.createProperty(provNamespace, "startedAtTime"), startedAtTime);
+        annotationModel.add(annotationDocumentResource, ResourceFactory.createProperty(provNamespace, "endedAtTime"), startedAtTime);
+        annotationModel.add(annotationDocumentResource, ResourceFactory.createProperty(provNamespace, "generated"), fileIdentifier);
 
         try {
             saveModel(annotationModel, gStoreIdentifier);
@@ -266,19 +277,6 @@ public class MetadataService {
         FileOutputStream os = new FileOutputStream(resultFile);
         model.write(os, "TURTLE");
     }
-
-    //TODO:
-    /*
-     *  1. gstore kriegt jsonld + repo + path im repo
-     *     - body is jsonld + request parameter im post (path + repo)
-     *  2. schreibt datei in den pfad + local gitrepo
-     *  3. schreibt file content ins virtuoso
-     * 
-     *  D.h. reimplement
-     *  1. saveModel
-     *  2. getModel 
-     */
-    //Stackoverflow for Http request + json body https://stackoverflow.com/questions/7181534/http-post-using-json-in-java
 
     File[] listFiles(String path) {
         return new File(baseDir, path).listFiles();
