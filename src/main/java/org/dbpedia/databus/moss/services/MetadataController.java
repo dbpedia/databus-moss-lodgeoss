@@ -1,9 +1,12 @@
 package org.dbpedia.databus.moss.services;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -18,7 +21,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.http.MediaType;
 
 import com.google.gson.Gson;
@@ -73,9 +78,29 @@ public class MetadataController {
             annotationURLs.add(annotationURL);
         }
 
-        metadataService.createAnnotation(annotationRequest.databusFile, annotationURLs);
+        String annotatorName = "simple";
+
+        metadataService.createAnnotation(annotationRequest, annotatorName);
 
         return annotationRequest;
+    }
+
+    @RequestMapping(value = {"/complex/annotate"})
+    public AnnotationRequest complexAnnotate(@RequestParam String databusFile, @RequestParam MultipartFile annotationGraph) {
+
+        String modType = "complexAnnotationMod";
+        try {
+            String content = new String(annotationGraph.getBytes(), StandardCharsets.UTF_8);
+            System.out.println(content);
+            InputStream graphInputStream = annotationGraph.getInputStream();
+
+            metadataService.createComplexAnnotation(databusFile, graphInputStream, modType);
+        } catch (Exception e) {
+            // TODO: handle exception
+            e.printStackTrace();
+        }
+
+        return null;
     }
 
     @RequestMapping("/annotations/{databus}/{user}/{group}/{file}")

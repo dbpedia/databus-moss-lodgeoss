@@ -2,7 +2,6 @@ package org.dbpedia.databus.moss.services;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.http.client.utils.URIBuilder;
-import org.apache.jena.graph.Graph;
 import org.apache.jena.query.*;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
@@ -11,8 +10,6 @@ import org.apache.jena.rdf.model.ResourceFactory;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.riot.RDFParser;
-import org.apache.jena.shared.PrefixMapping;
-import org.apache.jena.vocabulary.RDF;
 import org.dbpedia.databus.moss.annotation.SVGBuilder;
 import org.dbpedia.databus.moss.views.annotation.AnnotationURL;
 import org.dbpedia.databus.utils.MossUtilityFunctions;
@@ -30,13 +27,13 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 
-import java.time.format.DateTimeFormatter;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.io.ByteArrayOutputStream;
 import java.io.ByteArrayInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.File;
 import java.net.URISyntaxException;
 import java.net.http.HttpResponse;
@@ -44,7 +41,6 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpClient;
 import java.net.URLEncoder;
 import java.net.URI;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -58,18 +54,21 @@ public class MetadataService {
     private final String virtPsw;
     private final File baseDir;
     private final String baseURI;
+    private final String gStoreBaseURL;
     private final String regexResourcePrefix = "http[s]?://";
 
     public MetadataService(@Value("${virt.url}") String virtUrl,
                            @Value("${virt.usr}") String virtUsr,
                            @Value("${virt.psw}") String virtPsw,
                            @Value("${file.vol}") String volume,
-                           @Value("${uri.base}") String baseURI) {
+                           @Value("${uri.base}") String baseURI,
+                           @Value("${uri.gstore}") String gStoreBaseURL) {
         this.virtUrl = virtUrl;
         this.virtUsr = virtUsr;
         this.virtPsw = virtPsw;
         this.baseDir = new File(volume);
         this.baseURI = baseURI;
+        this.gStoreBaseURL = gStoreBaseURL;
     }
 
 
@@ -79,9 +78,6 @@ public class MetadataService {
         db.addNamedModel(graphName, model, false);
         db.commit();
         db.close();
-    }
-
-    void updateModel() {
     }
 
     public String buildURL(String baseURL, List<String> pathSegments) {
@@ -134,9 +130,11 @@ public class MetadataService {
         return buildURL(baseURLRaw, pathSegments);
     }
 
-    public String createGStoreIdentifier(String[] pathValues) {
-        String baseURL = "http://localhost:3002";
-        return buildURL(baseURL, pathValues);
+    public String createGStoreIdentifier(String fileIdentifier) {
+        String segments = fileIdentifier.replace(this.baseURI + "/", "");
+        String[] pathValues = segments.split("/", 2);
+        // String baseURL = "http://localhost:3002";
+        return buildURL(this.gStoreBaseURL, pathValues);
     }
 
     public URI createEndpointURL(String scheme, String gStoreBaseURL, String repository, String path) {
@@ -171,47 +169,18 @@ public class MetadataService {
         return pathSegments;
     }
 
-    public void createAnnotation(String databusIdentifier, List<AnnotationURL> annotationURLs) {
-
-        String modVersion = "1.0.0";
-        String annotatorName = "simple";
-        String dcNamespace = "http://purl.org/dc/terms/";
-        String provNamespace = "http://www.w3.org/ns/prov#";
-        String mossNamespace = "https://dataid.dbpedia.org/moss#";
-        String modFragment = "#mod";
+    public void createAnnotation(AnnotationRequest annotationRequest, String annotatorName) {
+        String databusIdentifier = annotationRequest.getDatabusFile();
         String fileIdentifier = creatFileIdentifier(this.baseURI, annotatorName, databusIdentifier);
-        String segments = fileIdentifier.replace(this.baseURI + "/", "");
-        String[] pathValues = segments.split("/", 2);
-        String gStoreIdentifier = createGStoreIdentifier(pathValues);
+        String gStoreIdentifier = createGStoreIdentifier(fileIdentifier);
 
         Model annotationModel = ModelFactory.createDefaultModel();
+        Resource databusResource = ResourceFactory.createResource(databusIdentifier);
 
         annotationModel = getModel(annotationModel, gStoreIdentifier);
+        AnnotationModMetadata simpleAnnotationMod = new AnnotationModMetadata(databusIdentifier);
 
-        PrefixMapping prefixMapping = annotationModel.getGraph().getPrefixMapping();
-
-        prefixMapping.setNsPrefix("dc", dcNamespace);
-        prefixMapping.setNsPrefix("prov", provNamespace);
-        prefixMapping.setNsPrefix("moss", mossNamespace);
-
-        // Create resources
-        Resource databusResource = ResourceFactory.createResource(databusIdentifier);
-        Resource annotationDocumentResource = ResourceFactory.createResource(modFragment);
-
-        for(AnnotationURL annotationURL: annotationURLs) {
-            annotationModel.add(
-                    databusResource,
-                    ResourceFactory.createProperty(dcNamespace, "subject"),
-                    ResourceFactory.createResource(annotationURL.getUri()));
-        }
-        
-        String startedAtTime = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").format(LocalDateTime.now());
-
-        annotationModel.add(annotationDocumentResource, RDF.type, ResourceFactory.createResource("https://dataid.dbpedia.org/moss#SimpleAnnotationMod"));
-        annotationModel.add(annotationDocumentResource, ResourceFactory.createProperty(provNamespace, "used"), databusResource);
-        annotationModel.add(annotationDocumentResource, ResourceFactory.createProperty(provNamespace, "startedAtTime"), startedAtTime);
-        annotationModel.add(annotationDocumentResource, ResourceFactory.createProperty(provNamespace, "endedAtTime"), startedAtTime);
-        annotationModel.add(annotationDocumentResource, ResourceFactory.createProperty(provNamespace, "generated"), annotationModel.createResource(""));
+        simpleAnnotationMod.annotateModel(annotationModel, databusResource, annotationRequest);
 
         try {
             saveModel(annotationModel, gStoreIdentifier);
@@ -220,46 +189,20 @@ public class MetadataService {
         }
     }
 
-    public void createComplexAnnotation(String databusIdentifier, ByteArrayInputStream graphInputStream, String modType) {
-
-        String modVersion = "1.0.0";
-        String annotatorName = "complex";
-        String dcNamespace = "http://purl.org/dc/terms/";
-        String provNamespace = "http://www.w3.org/ns/prov#";
-        String mossNamespace = "https://dataid.dbpedia.org/moss#";
-        String modFragment = "#" + modType;
+    public void createComplexAnnotation(String databusIdentifier, InputStream graphInputStream, String annotatorName) {
+        String modVersion = "0.0.0";
         String fileIdentifier = creatFileIdentifier(this.baseURI, annotatorName, databusIdentifier);
-        String segments = fileIdentifier.replace(this.baseURI + "/", "");
-        String[] pathValues = segments.split("/", 2);
-        String gStoreIdentifier = createGStoreIdentifier(pathValues);
+        String gStoreIdentifier = createGStoreIdentifier(fileIdentifier);
 
         Model annotationModel = ModelFactory.createDefaultModel();
-
         annotationModel = getModel(annotationModel, gStoreIdentifier);
 
-        PrefixMapping prefixMapping = annotationModel.getGraph().getPrefixMapping();
-
-        prefixMapping.setNsPrefix("dc", dcNamespace);
-        prefixMapping.setNsPrefix("prov", provNamespace);
-        prefixMapping.setNsPrefix("moss", mossNamespace);
-
         // Create resources
-        RDFDataMgr.read(annotationModel, graphInputStream, Lang.TURTLE);
-
-        RDFDataMgr.write(System.out, annotationModel, Lang.TURTLE);
-
         Resource databusResource = ResourceFactory.createResource(databusIdentifier);
-        Resource annotationDocumentResource = ResourceFactory.createResource(modFragment);
+        AnnotationModMetadata complexAnnotationMod = new AnnotationModMetadata(modVersion, "complex", databusIdentifier, graphInputStream);
 
-        String startedAtTime = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").format(LocalDateTime.now());
-
-        annotationModel.add(annotationDocumentResource, RDF.type, ResourceFactory.createResource("https://dataid.dbpedia.org/moss#" + modType));
-
-
-        annotationModel.add(annotationDocumentResource, ResourceFactory.createProperty(provNamespace, "used"), databusResource);
-        annotationModel.add(annotationDocumentResource, ResourceFactory.createProperty(provNamespace, "startedAtTime"), startedAtTime);
-        annotationModel.add(annotationDocumentResource, ResourceFactory.createProperty(provNamespace, "endedAtTime"), startedAtTime);
-        annotationModel.add(annotationDocumentResource, ResourceFactory.createProperty(provNamespace, "generated"), annotationModel.createResource(""));
+        complexAnnotationMod.annotateModel(annotationModel, databusResource);
+        RDFDataMgr.write(System.out, annotationModel, Lang.TURTLE);
 
         try {
             saveModel(annotationModel, gStoreIdentifier);
@@ -304,9 +247,9 @@ public class MetadataService {
         RDFDataMgr.write(outputStream, annotationModel, Lang.JSONLD);
 
         System.out.println("#########################################");
-        RDFDataMgr.write(System.out, annotationModel, Lang.TURTLE);
-        System.out.println("+++++++++++++++++++++++++++++++++++++++++");
         RDFDataMgr.write(System.out, annotationModel, Lang.JSONLD);
+        System.out.println("+++++++++++++++++++++++++++++++++++++++++");
+        RDFDataMgr.write(System.out, annotationModel, Lang.TURTLE);
         System.out.println("#########################################");
 
         String jsonString = outputStream.toString("UTF-8");
@@ -316,16 +259,13 @@ public class MetadataService {
         headers.add("Content-Type", "application/ld+json");
 
         HttpEntity<String> entity = new HttpEntity<String>(jsonString, headers);
-        System.out.println(jsonString);
         try {
-            // String endpoint = "http://localhost:3002/graph/save?repo=oeo&path=/simple/cement/annotation.jsonld";
             URI endpoint = new URI(gStoreEndpoint);
             ResponseEntity<String> response = restTemplate.postForEntity(endpoint, entity, String.class);
             String serverResponse = response.getBody();
             System.out.println("----------------server response--------------------");
             System.out.println(serverResponse);
             System.out.println("------------------------------------");
-            RDFDataMgr.write(System.out, annotationModel, Lang.TURTLE);
         } catch (Exception e) {
             e.printStackTrace();
         }

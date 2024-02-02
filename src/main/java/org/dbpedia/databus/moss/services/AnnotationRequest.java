@@ -6,10 +6,12 @@ import java.util.List;
 public class AnnotationRequest {
     public String databusFile;
     public List<String> tags;
+    public String version;
 
     public AnnotationRequest(String databusFile, List<String> tags){
         this.databusFile = databusFile;
         this.tags = tags;
+        this.version = "1.0.0";
     }
 
     public List<String> getTags() {
@@ -18,6 +20,14 @@ public class AnnotationRequest {
 
     public void setTags(List<String> tags) {
         this.tags = tags;
+    }
+
+    public void setVersion(String version) {
+        this.version = version;
+    }
+
+    public String getVersion() {
+        return this.version;
     }
 
     public String getDatabusFile() {

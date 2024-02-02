@@ -139,19 +139,19 @@ public class AnnotationView extends Div implements BeforeEnterObserver {
 
         Button submitBTN = new Button("submit");
 
-        submitBTN.addClickListener(
-                (ComponentEventListener<ClickEvent<Button>>) buttonClickEvent -> {
-                    String identifier = databusIdTF.getValue();
-                    if (DatabusUtilFunctions.validate(identifier)
-                    && ! annotationUrls.isEmpty()) {
-                        ms.createAnnotation(databusIdTF.getValue(), annotationUrls);
-                        updateVersionLink(databusIdTF.getValue());
-                        Notification.show("submitted", 2000, Notification.Position.MIDDLE);
-                    } else {
-                        updateVersionLink(null);
-                        Notification.show("invalid input", 2000, Notification.Position.MIDDLE);
-                    }
-                });
+        // submitBTN.addClickListener(
+        //         (ComponentEventListener<ClickEvent<Button>>) buttonClickEvent -> {
+        //             String identifier = databusIdTF.getValue();
+        //             if (DatabusUtilFunctions.validate(identifier)
+        //             && ! annotationUrls.isEmpty()) {
+        //                 ms.createAnnotation(databusIdTF.getValue(), annotationUrls);
+        //                 updateVersionLink(databusIdTF.getValue());
+        //                 Notification.show("submitted", 2000, Notification.Position.MIDDLE);
+        //             } else {
+        //                 updateVersionLink(null);
+        //                 Notification.show("invalid input", 2000, Notification.Position.MIDDLE);
+        //             }
+        //         });
 
         Button refreshBTN = new Button();
         refreshBTN.setIcon(VaadinIcon.REFRESH.create());
