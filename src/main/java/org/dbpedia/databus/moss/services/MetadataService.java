@@ -10,11 +10,14 @@ import org.apache.jena.rdf.model.ResourceFactory;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.riot.RDFParser;
+import org.apache.jena.sparql.function.library.print;
 import org.dbpedia.databus.moss.annotation.SVGBuilder;
+import org.dbpedia.databus.moss.services.Indexer.IndexerManager;
 import org.dbpedia.databus.moss.views.annotation.AnnotationURL;
 import org.dbpedia.databus.utils.MossUtilityFunctions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
@@ -44,8 +47,9 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 
-@Service
-public class MetadataService {
+
+    @Service
+    public class MetadataService {
 
     private final Logger log = LoggerFactory.getLogger(MetadataService.class);
 
@@ -56,13 +60,16 @@ public class MetadataService {
     private final String baseURI;
     private final String gStoreBaseURL;
     private final String regexResourcePrefix = "http[s]?://";
+    private IndexerManager indexerManager;
 
-    public MetadataService(@Value("${virt.url}") String virtUrl,
+    public MetadataService(@Autowired IndexerManager indexerManager,
+                           @Value("${virt.url}") String virtUrl,
                            @Value("${virt.usr}") String virtUsr,
                            @Value("${virt.psw}") String virtPsw,
                            @Value("${file.vol}") String volume,
                            @Value("${uri.base}") String baseURI,
                            @Value("${uri.gstore}") String gStoreBaseURL) {
+        this.indexerManager = indexerManager;
         this.virtUrl = virtUrl;
         this.virtUsr = virtUsr;
         this.virtPsw = virtPsw;
@@ -112,14 +119,14 @@ public class MetadataService {
     }
 
 
-    public String creatFileIdentifier(String baseURLRaw, String annotationName, String databusIdentifier) {
+    public String creatFileIdentifier(String baseURLRaw, String modType, String databusIdentifier) {
         List<String> pathSegments = new ArrayList<String>();
 
         databusIdentifier = databusIdentifier.replaceAll(this.regexResourcePrefix, "");
         String[] resourceSegments = databusIdentifier.split("/");
 
         pathSegments.add("annotations");
-        pathSegments.add(annotationName);
+        pathSegments.add(modType);
 
         for (String segment : resourceSegments) {
             pathSegments.add(segment);
@@ -152,14 +159,14 @@ public class MetadataService {
         return endpoint;
     }
 
-    List<String> createPathSegments(String annotationName, String resourcePathRaw) {
+    List<String> createPathSegments(String modType, String resourcePathRaw) {
         List<String> pathSegments = new ArrayList<String>();
 
         resourcePathRaw = resourcePathRaw.replaceAll(this.regexResourcePrefix, "");
         String[] resourceSegments = resourcePathRaw.split("/");
 
-        pathSegments.add("annotations");
-        pathSegments.add(annotationName);
+        pathSegments.add("mods");
+        pathSegments.add(modType);
 
         for (String segment : resourceSegments) {
             pathSegments.add(segment);
@@ -169,16 +176,17 @@ public class MetadataService {
         return pathSegments;
     }
 
-    public void createAnnotation(AnnotationRequest annotationRequest, String annotatorName) {
+    public void createAnnotation(AnnotationRequest annotationRequest) {
         String databusIdentifier = annotationRequest.getDatabusFile();
-        String fileIdentifier = creatFileIdentifier(this.baseURI, annotatorName, databusIdentifier);
+        AnnotationModMetadata simpleAnnotationMod = new AnnotationModMetadata(databusIdentifier);
+
+        String fileIdentifier = creatFileIdentifier(this.baseURI, simpleAnnotationMod.modType, databusIdentifier);
         String gStoreIdentifier = createGStoreIdentifier(fileIdentifier);
 
         Model annotationModel = ModelFactory.createDefaultModel();
         Resource databusResource = ResourceFactory.createResource(databusIdentifier);
 
         annotationModel = getModel(annotationModel, gStoreIdentifier);
-        AnnotationModMetadata simpleAnnotationMod = new AnnotationModMetadata(databusIdentifier);
 
         simpleAnnotationMod.annotateModel(annotationModel, databusResource, annotationRequest);
 
@@ -189,9 +197,10 @@ public class MetadataService {
         }
     }
 
-    public void createComplexAnnotation(String databusIdentifier, InputStream graphInputStream, String annotatorName) {
+    public void createComplexAnnotation(String databusIdentifier, InputStream graphInputStream) {
         String modVersion = "0.0.0";
-        String fileIdentifier = creatFileIdentifier(this.baseURI, annotatorName, databusIdentifier);
+        AnnotationModMetadata complexAnnotationMod = new AnnotationModMetadata(modVersion, "complex", databusIdentifier, graphInputStream);
+        String fileIdentifier = creatFileIdentifier(this.baseURI, complexAnnotationMod.modType, databusIdentifier);
         String gStoreIdentifier = createGStoreIdentifier(fileIdentifier);
 
         Model annotationModel = ModelFactory.createDefaultModel();
@@ -199,7 +208,6 @@ public class MetadataService {
 
         // Create resources
         Resource databusResource = ResourceFactory.createResource(databusIdentifier);
-        AnnotationModMetadata complexAnnotationMod = new AnnotationModMetadata(modVersion, "complex", databusIdentifier, graphInputStream);
 
         complexAnnotationMod.annotateModel(annotationModel, databusResource);
         RDFDataMgr.write(System.out, annotationModel, Lang.TURTLE);

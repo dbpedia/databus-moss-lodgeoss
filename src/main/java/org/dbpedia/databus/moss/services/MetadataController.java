@@ -1,6 +1,5 @@
 package org.dbpedia.databus.moss.services;
 
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -9,7 +8,6 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.springframework.core.io.Resource;
@@ -39,7 +37,6 @@ public class MetadataController {
     public static final Pattern baseRegex = Pattern.compile("^(https?://[^/]+/annotations/)");
     MetadataService metadataService;
     JSON_Parser parser;
-    Matcher matcher;
     Gson gson;
 
     public MetadataController(@Autowired MetadataService metadataService, @Autowired Gson gson) {
@@ -78,9 +75,7 @@ public class MetadataController {
             annotationURLs.add(annotationURL);
         }
 
-        String annotatorName = "simple";
-
-        metadataService.createAnnotation(annotationRequest, annotatorName);
+        metadataService.createAnnotation(annotationRequest);
 
         return annotationRequest;
     }
@@ -94,7 +89,7 @@ public class MetadataController {
             System.out.println(content);
             InputStream graphInputStream = annotationGraph.getInputStream();
 
-            metadataService.createComplexAnnotation(databusFile, graphInputStream, modType);
+            metadataService.createComplexAnnotation(databusFile, graphInputStream);
         } catch (Exception e) {
             // TODO: handle exception
             e.printStackTrace();
