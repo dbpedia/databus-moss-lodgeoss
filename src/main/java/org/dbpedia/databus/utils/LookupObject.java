@@ -1,7 +1,5 @@
 package org.dbpedia.databus.utils;
 
-import com.vaadin.flow.component.Html;
-
 public class LookupObject {
     private String[] score;
     private String[] label;

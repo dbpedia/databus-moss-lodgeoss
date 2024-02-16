@@ -1,0 +1,7 @@
+indexers:
+  - configPath: ./simple/index.yml
+    mods: 
+      - SimpleAnnotationMod
+  - configPath: ./dlr-tables/index.yml
+    mods: 
+      - DLRTableAnnotationMod

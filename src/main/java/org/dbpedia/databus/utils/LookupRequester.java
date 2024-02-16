@@ -7,7 +7,6 @@ import java.net.URI;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-import org.dbpedia.databus.utils.LookupObject;
 
 import java.util.List;
 import java.util.Map;

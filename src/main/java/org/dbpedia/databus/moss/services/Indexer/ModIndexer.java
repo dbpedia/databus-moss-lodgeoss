@@ -1,5 +1,6 @@
 package org.dbpedia.databus.moss.services.Indexer;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.Executors;
@@ -14,9 +15,9 @@ public class ModIndexer {
     private Future<String> workerStatus;
     private final int fixedPoolSize = 1;
 
-    public ModIndexer(ModIndexerConfig config, List<String> todos) {
+    public ModIndexer(ModIndexerConfig config) {
         this.config = config;
-        this.todos = todos;
+        this.todos = new ArrayList<String>();
         this.id = UUID.randomUUID().toString();
         this.worker = Executors.newFixedThreadPool(fixedPoolSize);
     }

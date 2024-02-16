@@ -3,12 +3,12 @@ package org.dbpedia.databus.moss.services;
 import java.util.List;
 
 
-public class AnnotationRequest {
+public class SimpleAnnotationRequest {
     public String databusFile;
     public List<String> tags;
     public String version;
 
-    public AnnotationRequest(String databusFile, List<String> tags){
+    public SimpleAnnotationRequest(String databusFile, List<String> tags){
         this.databusFile = databusFile;
         this.tags = tags;
         this.version = "1.0.0";

@@ -13,7 +13,6 @@ import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.vocabulary.DC;
 import org.apache.jena.vocabulary.RDF;
 import org.apache.jena.vocabulary.RDFS;
-import org.dbpedia.databus.moss.views.annotation.AnnotationURL;
 
 public class AnnotationModMetadata {
 
@@ -28,7 +27,7 @@ public class AnnotationModMetadata {
 
     public AnnotationModMetadata(String databusResourceUri) {
         this.version = "1.0.0";
-        this.modType = "simpleAnnotationMod";
+        this.modType = "SimpleAnnotationMod";
         this.databusResourceUri = databusResourceUri;
         this.time = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").format(LocalDateTime.now());
         this.nameSpaces = Map.of("dc", "http://purl.org/dc/terms/",
@@ -50,7 +49,7 @@ public class AnnotationModMetadata {
                                 "mod", "http://dataid.dbpedia.org/ns/mod#");
     }
 
-    public void annotateModel(Model annotationModel, Resource databusResource, AnnotationRequest annotationRequest) {
+    public void annotateModel(Model annotationModel, Resource databusResource, SimpleAnnotationRequest annotationRequest) {
         Resource annotationDocumentResource = ResourceFactory.createResource(modFragment);
         Resource modTypResource = ResourceFactory.createResource("https://dataid.dbpedia.org/moss#" + this.modType);
 
@@ -58,7 +57,7 @@ public class AnnotationModMetadata {
             annotationModel.add(
                     databusResource,
                     DC.subject,
-                    ResourceFactory.createResource(new AnnotationURL(tag).getUri()));
+                    ResourceFactory.createResource(tag));
         }
 
         this.annotateModInfo(annotationModel, databusResource, annotationDocumentResource, modTypResource);

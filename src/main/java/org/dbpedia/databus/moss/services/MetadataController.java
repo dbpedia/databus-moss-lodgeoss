@@ -6,12 +6,9 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.regex.Pattern;
 
 import org.springframework.core.io.Resource;
-import org.dbpedia.databus.moss.views.annotation.AnnotationURL;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpHeaders;
@@ -63,27 +60,18 @@ public class MetadataController {
         return response;
     }
 
-    @RequestMapping(value = {"/annotate"})
-    public AnnotationRequest annotate(@RequestBody String json) {
+    @RequestMapping(value = {"/annotate/simple"})
+    public SimpleAnnotationRequest annotate(@RequestBody String json) {
 
-        AnnotationRequest annotationRequest = gson.fromJson(json, AnnotationRequest.class);
-        List<String> tags = annotationRequest.getTags();
-        List<AnnotationURL> annotationURLs = new ArrayList<AnnotationURL>();
-
-        for (String tag : tags) {
-            AnnotationURL annotationURL = new AnnotationURL(tag);
-            annotationURLs.add(annotationURL);
-        }
-
+        // Get simple request from json body
+        SimpleAnnotationRequest annotationRequest = gson.fromJson(json, SimpleAnnotationRequest.class);
         metadataService.createAnnotation(annotationRequest);
-
         return annotationRequest;
     }
 
-    @RequestMapping(value = {"/complex/annotate"})
-    public AnnotationRequest complexAnnotate(@RequestParam String databusFile, @RequestParam MultipartFile annotationGraph) {
+    @RequestMapping(value = {"/annotate"})
+    public SimpleAnnotationRequest complexAnnotate(@RequestParam String databusFile, @RequestParam MultipartFile annotationGraph) {
 
-        String modType = "complexAnnotationMod";
         try {
             String content = new String(annotationGraph.getBytes(), StandardCharsets.UTF_8);
             System.out.println(content);
