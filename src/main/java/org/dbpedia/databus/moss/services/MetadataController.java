@@ -65,7 +65,11 @@ public class MetadataController {
 
         // Get simple request from json body
         SimpleAnnotationRequest annotationRequest = gson.fromJson(json, SimpleAnnotationRequest.class);
-        metadataService.createAnnotation(annotationRequest);
+        // metadataService.createAnnotation(annotationRequest);
+
+        this.metadataService.getIndexerManager().updateIndices("SimpleAnnotationMod", 
+            annotationRequest.getDatabusFile());
+
         return annotationRequest;
     }
 

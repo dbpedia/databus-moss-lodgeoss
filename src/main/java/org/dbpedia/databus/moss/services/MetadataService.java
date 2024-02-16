@@ -75,6 +75,12 @@ import java.util.List;
         this.gStoreBaseURL = gStoreBaseURL;
     }
 
+    @Override
+    protected void finalize() throws Throwable {
+        System.out.println("Stopping.");
+        this.indexerManager.stop();
+    }
+
     void updateModelLegacy(String graphName, Model model, Boolean delete) {
         VirtDataset db = new VirtDataset(virtUrl, virtUsr, virtPsw);
         if (delete && db.containsNamedModel(graphName)) db.removeNamedModel(graphName);
@@ -233,6 +239,7 @@ import java.util.List;
         headers.add("Accept", "application/ld+json");
         headers.add("Content-Type", "application/ld+json");
 
+      
         HttpEntity<String> entity = new HttpEntity<String>(jsonString, headers);
         try {
             URI endpoint = new URI(gStoreEndpoint);
@@ -243,7 +250,7 @@ import java.util.List;
             System.out.println("------------------------------------");
         } catch (Exception e) {
             e.printStackTrace();
-        }
+        } 
     }
 
     Model getModel(Model model, String gStoreEndpoint) {
@@ -306,5 +313,9 @@ import java.util.List;
             log.warn("Could not load turtle data for submission page: " + e);
             return "";
         }
+    }
+
+    public IndexerManager getIndexerManager() {
+        return this.indexerManager;
     }
 }

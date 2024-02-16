@@ -1,27 +1,29 @@
 package org.dbpedia.databus.moss.services.Indexer;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
+
 
 public class ModIndexer {
     private String id;
-    private List<String> todos;
-    private ExecutorService worker;
+    private HashSet<String> todos;
+    // private ExecutorService worker;
     private ModIndexerConfig config;
-    private Future<String> workerStatus;
-    private final int fixedPoolSize = 1;
+    private Future indexingFuture;
+    // private final int fixedPoolSize = 1;
 
     public ModIndexer(ModIndexerConfig config) {
         this.config = config;
-        this.todos = new ArrayList<String>();
+        this.todos = new HashSet<String>();
         this.id = UUID.randomUUID().toString();
-        this.worker = Executors.newFixedThreadPool(fixedPoolSize);
+        // this.worker = Executors.newFixedThreadPool(fixedPoolSize);
     }
 
+    /*
     @Override
     protected void finalize() {
         try {
@@ -30,6 +32,7 @@ public class ModIndexer {
             System.err.println(e);
         }
     }
+ */
 
     public String getId() {
         return id;
@@ -43,11 +46,11 @@ public class ModIndexer {
         this.config = config;
     }
 
-    public List<String> getTodos() {
+    public HashSet<String> getTodos() {
         return this.todos;
     }
 
-    public void setTodos(List<String> todos) {
+    public void setTodos(HashSet<String> todos) {
         this.todos = todos;
     }
 
@@ -59,17 +62,17 @@ public class ModIndexer {
         this.todos.clear();
     }
 
-    public void rebuildIndex(String resourceURI) {
-        if (!this.isBusy()) {
-            IndexingTask task = new IndexingTask(this.id, "command", this.getTodos(), "jarPath");
-            this.workerStatus = this.worker.submit(task);
-            this.clearTodos();
-        } else {
-            this.todos.add(resourceURI);
-        }
+    public void run(ExecutorService executor) {
+        List<String> resources = new ArrayList<String>();
+        resources.addAll(this.todos);
+        this.todos.clear();
+
+        IndexingTask task = new IndexingTask(this.config.getConfigPath(), "command", resources, "jarPath");
+        this.indexingFuture = executor.submit(task);
     }
 
+
     public boolean isBusy() {
-        return this.workerStatus.isDone();
+        return this.indexingFuture != null && !this.indexingFuture.isDone();
     }
 }

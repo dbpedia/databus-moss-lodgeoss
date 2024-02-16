@@ -1,9 +1,12 @@
 package org.dbpedia.databus.moss.services.Indexer;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.List;
-import java.util.concurrent.Callable;
 
-public class IndexingTask implements Callable<String> {
+import org.springframework.util.ResourceUtils;
+
+public class IndexingTask implements Runnable {
 
     String command;
     List<String> todos;
@@ -18,16 +21,36 @@ public class IndexingTask implements Callable<String> {
     }
 
     @Override
-    public String call() throws Exception {
-        ProcessBuilder processBuilder = new ProcessBuilder("java", "-jar", this.path);
-        processBuilder.command().addAll(todos);
+    public void run()  {
 
-        // Start the process
-        Process process = processBuilder.start();
-        // Wait for the process to finish
-        int exitCode = process.waitFor();
+        System.out.println("Ich bims der runner auf thread " + Thread.currentThread().threadId());
+       
+        try {
+            File indexJar = ResourceUtils.getFile("classpath:lookup-indexer.jar");
+            File configFile = ResourceUtils.getFile("classpath:" + this.indexer);
 
+            ProcessBuilder processBuilder = new ProcessBuilder("java", "-jar", indexJar.getAbsolutePath());
+            processBuilder.command().add("-c");
+            processBuilder.command().add(configFile.getAbsolutePath());
+            processBuilder.command().add("-r");
+            processBuilder.command().addAll(todos);
+            processBuilder.inheritIO();
+
+            System.out.println("Starting process");
+            Process process = processBuilder.start();
+          
+            // Wait for the process to finish
+            process.waitFor();
+
+        } catch (IOException e) {
+            System.out.println("gefahr");
+            e.printStackTrace();
+        } catch (InterruptedException e) {
+            System.out.println("gefahr 2");
+            e.printStackTrace();
+        }
+        System.out.println("Fertig auf " + Thread.currentThread().threadId());
+       
         // Print exit code for debugging
-        return "JAR Execution finished with exit code: " + exitCode;
     }
 }
