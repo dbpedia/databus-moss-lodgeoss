@@ -23,7 +23,8 @@ public class IndexerManager {
 
     private ScheduledExecutorService scheduler;
 
-    public IndexerManager(IndexerManagerConfig config) {
+
+    public IndexerManager(String volumePath, IndexerManagerConfig config) {
 
         this.indexers = new ArrayList<ModIndexer>();
         this.indexerMappings = new HashMap<String, List<ModIndexer>>();
@@ -34,7 +35,7 @@ public class IndexerManager {
 
         for(ModIndexerConfig indexerConfig : config.getIndexers()) {
 
-            ModIndexer modIndexer = new ModIndexer(indexerConfig);
+            ModIndexer modIndexer = new ModIndexer(indexerConfig, volumePath + "/lookup-indexer.jar");
 
             this.indexers.add(modIndexer);
             System.out.println("Created indexer with id " + modIndexer.getId());
@@ -115,7 +116,6 @@ public class IndexerManager {
 
     
     public void updateIndices(String modType, String resourceURI) {
-        System.out.println("BITTE TÖTEN SIE MICH.");
         List<ModIndexer> correspondingIndexers = indexerMappings.get(modType);
         for (ModIndexer indexer : correspondingIndexers) {
             indexer.addTodo(resourceURI);

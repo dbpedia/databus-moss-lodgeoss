@@ -23,9 +23,8 @@ public class IndexerManagerConfig {
         this.indexers = indexerConfigs;
     }
 
-    public static IndexerManagerConfig fromJson(String filePath) {
+    public static IndexerManagerConfig fromJson(File file) {
         try {
-            File file = ResourceUtils.getFile("classpath:" + filePath);
             ObjectMapper mapper = new ObjectMapper(new YAMLFactory().enable(YAMLGenerator.Feature.MINIMIZE_QUOTES));
         
             return mapper.readValue(file, IndexerManagerConfig.class);

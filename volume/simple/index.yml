@@ -1,6 +1,6 @@
 version: "1.0"
 # indexPath: C:\Users\janfo\Documents\Work\databus-moss\indices\simple
-indexPath: /home/john/Documents/workspace/whk/moss/indices/simple
+indexPath: ./volume/index
 indexMode: INDEX_SPARQL_ENDPOINT
 sparqlEndpoint: http://localhost:3003/sparql
 cleanIndex: true

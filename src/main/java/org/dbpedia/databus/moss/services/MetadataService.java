@@ -65,8 +65,9 @@ import java.util.List;
                            @Value("${uri.base}") String baseURI,
                            @Value("${uri.gstore}") String gStoreBaseURL) {
 
-        IndexerManagerConfig indexerConfig = IndexerManagerConfig.fromJson("indexer-config.yml");
-        this.indexerManager = new IndexerManager(indexerConfig);
+        File file = new File(volume + "/indexer-config.yml");
+        IndexerManagerConfig indexerConfig = IndexerManagerConfig.fromJson(file);
+        this.indexerManager = new IndexerManager(volume, indexerConfig);
         this.virtUrl = virtUrl;
         this.virtUsr = virtUsr;
         this.virtPsw = virtPsw;

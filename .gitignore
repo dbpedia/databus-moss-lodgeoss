@@ -6,7 +6,6 @@
 .classpath
 .env
 openenergy/lookup/index/
-volume/
 
 *.iml
 *.md5

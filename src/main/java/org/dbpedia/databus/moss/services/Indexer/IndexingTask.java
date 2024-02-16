@@ -26,10 +26,9 @@ public class IndexingTask implements Runnable {
         System.out.println("Ich bims der runner auf thread " + Thread.currentThread().getId());
        
         try {
-            File indexJar = ResourceUtils.getFile("classpath:lookup-indexer.jar");
             File configFile = ResourceUtils.getFile("classpath:" + this.indexer);
 
-            ProcessBuilder processBuilder = new ProcessBuilder("java", "-jar", indexJar.getAbsolutePath());
+            ProcessBuilder processBuilder = new ProcessBuilder("java", "-jar", path);
             processBuilder.command().add("-c");
             processBuilder.command().add(configFile.getAbsolutePath());
             processBuilder.command().add("-r");
