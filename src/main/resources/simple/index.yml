@@ -1,28 +1,20 @@
 version: "1.0"
-indexPath: C:\Users\janfo\Documents\Work\databus-moss\indices\simple
+# indexPath: C:\Users\janfo\Documents\Work\databus-moss\indices\simple
+indexPath: /home/john/Documents/workspace/whk/moss/indices/simple
 indexMode: INDEX_SPARQL_ENDPOINT
-sparqlEndpoint: https://dbpedia.org/sparql
+sparqlEndpoint: http://localhost:3003/sparql
 cleanIndex: true
 maxBufferedDocs: 100000
 commitInterval: 1000
 indexFields:
-  - fieldName: label
-    documentVariable: city
-    query: >
-      SELECT ?city ?label WHERE {
-        {
-          ?city a <http://dbpedia.org/ontology/City> .
-          ?city <http://www.w3.org/2000/01/rdf-schema#label> ?label .
-          FILTER (LANG(?label) = "en").
-        }
-      } LIMIT 10000
-  - fieldName: birthPlace
-    documentVariable: person
+  - fieldName: annotation
+    documentVariable: resource
     type: uri
     query: >
-      SELECT ?person ?birthPlace WHERE {
-        {
-          ?person a <http://dbpedia.org/ontology/Person> .
-          ?person <http://dbpedia.org/ontology/birthPlace> ?birthPlace .
-        }
-      } LIMIT 10000
+      SELECT DISTINCT ?resource ?annotation WHERE {
+          GRAPH ?g {
+            ?mod a <https://dataid.dbpedia.org/moss#SimpleAnnotationMod> .
+              ?resource <http://purl.org/dc/elements/1.1/subject> ?annotation .
+          }
+          %VALUES%
+      }
