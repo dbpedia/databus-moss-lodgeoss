@@ -89,18 +89,8 @@ import java.util.List;
         db.close();
     }
 
-    public String buildURL(String command, String repo, String path) {
-        try {
-            URIBuilder builder = new URIBuilder(this.gStoreBaseURL);
-            builder.setPath("graph/" + command);
-            builder.setParameter("repo", repo);
-            builder.setParameter("path", path);
-
-            return builder.build().toString();
-        } catch (URISyntaxException e) {
-            e.printStackTrace();
-            return null;
-        }
+    public String getGstoreURL(String repo, String path) {
+        return this.gStoreBaseURL + "/g/" + repo + "/" + path;
     }
 
     public String buildURL(String baseURL, List<String> pathSegments) {

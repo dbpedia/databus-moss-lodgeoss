@@ -52,41 +52,16 @@ public class MetadataController {
     // /annotations/{databus}/{user}/{group}/{file}
     @GetMapping("/annotations/**")
     public ResponseEntity<String> getGraph(HttpServletRequest request) {
-        // String _endpoint = "http://localhost:3002/graph/read?repo=oeo&path=cement/annotation.jsonld";
-        // String endpoint = this.metadataService.buildURL("read", "annotations", path);
-
-        // Model model = ModelFactory.createDefaultModel();
-        // model = metadataService.getModel(model, endpoint);
-
-        // ByteArrayOutputStream out = new ByteArrayOutputStream();
-        // model.write(out, "jsonld");
-
-        // HttpHeaders header = new HttpHeaders();
-        // ResponseEntity<String> response = ResponseEntity.ok()
-        //         .headers(header)
-        //         .contentType(MediaType.APPLICATION_JSON)
-        //         .body(out.toString());
-        // return response;
-
-    // @GetMapping("all/**")
-    // public String allDirectories(HttpServletRequest request) {
-    //     return request.getRequestURI()
-    //         .split(request.getContextPath() + "/all/")[1];
-    // }
 
         String repo = "annotations";
         String path = request.getRequestURI().split(request.getContextPath() + "/" + repo + "/")[1];
 
         RestTemplate restTemplate = new RestTemplate();
-        String endpoint = this.metadataService.buildURL("read", repo, path);
-        endpoint = endpoint.replaceAll("%2F", "/");
-
-        System.out.println(endpoint);
+        String requestURL = this.metadataService.getGstoreURL(repo, path);
 
         @SuppressWarnings("null")
-        ResponseEntity<String> response = restTemplate.getForEntity(endpoint, String.class);
+        ResponseEntity<String> response = restTemplate.getForEntity(requestURL, String.class);
 
-        System.out.println("after");
         return ResponseEntity.status(response.getStatusCode()).body(response.getBody());
     }
 
