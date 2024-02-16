@@ -1,5 +1,5 @@
 version: "1.0"
-indexPath: ./index
+indexPath: C:\Users\janfo\Documents\Work\databus-moss\indices\simple
 indexMode: INDEX_SPARQL_ENDPOINT
 sparqlEndpoint: https://dbpedia.org/sparql
 cleanIndex: true
