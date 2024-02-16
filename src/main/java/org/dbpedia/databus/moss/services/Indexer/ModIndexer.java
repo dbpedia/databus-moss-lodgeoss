@@ -14,12 +14,12 @@ public class ModIndexer {
     // private ExecutorService worker;
     private ModIndexerConfig config;
     private Future indexingFuture;
-    private String jarPath;
+    private String directory;
     // private final int fixedPoolSize = 1;
 
-    public ModIndexer(ModIndexerConfig config, String jarPath) {
+    public ModIndexer(ModIndexerConfig config, String directory) {
         this.config = config;
-        this.jarPath = jarPath;
+        this.directory = directory;
         this.todos = new HashSet<String>();
         this.id = UUID.randomUUID().toString();
         // this.worker = Executors.newFixedThreadPool(fixedPoolSize);
@@ -69,7 +69,7 @@ public class ModIndexer {
         resources.addAll(this.todos);
         this.todos.clear();
 
-        IndexingTask task = new IndexingTask(this.config.getConfigPath(), "command", resources, jarPath);
+        IndexingTask task = new IndexingTask(this.config.getConfigPath(), "command", resources, directory);
         this.indexingFuture = executor.submit(task);
     }
 

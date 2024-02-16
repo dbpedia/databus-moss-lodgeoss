@@ -4,18 +4,17 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
-import org.springframework.util.ResourceUtils;
 
 public class IndexingTask implements Runnable {
 
     String command;
     List<String> todos;
     String indexer;
-    String path;
+    String directory;
 
-    public IndexingTask(String indexer, String command, List<String> todos, String jarPath) {
+    public IndexingTask(String indexer, String command, List<String> todos, String directory) {
         this.todos = todos;
-        this.path = jarPath;
+        this.directory = directory;
         this.indexer = indexer;
         this.command = command;
     }
@@ -26,9 +25,9 @@ public class IndexingTask implements Runnable {
         System.out.println("Ich bims der runner auf thread " + Thread.currentThread().getId());
        
         try {
-            File configFile = ResourceUtils.getFile("classpath:" + this.indexer);
+            File configFile = new File(directory + "/" + this.indexer);
 
-            ProcessBuilder processBuilder = new ProcessBuilder("java", "-jar", path);
+            ProcessBuilder processBuilder = new ProcessBuilder("java", "-jar", directory + "/lookup-indexer.jar");
             processBuilder.command().add("-c");
             processBuilder.command().add(configFile.getAbsolutePath());
             processBuilder.command().add("-r");

@@ -35,7 +35,7 @@ public class IndexerManager {
 
         for(ModIndexerConfig indexerConfig : config.getIndexers()) {
 
-            ModIndexer modIndexer = new ModIndexer(indexerConfig, volumePath + "/lookup-indexer.jar");
+            ModIndexer modIndexer = new ModIndexer(indexerConfig, volumePath );
 
             this.indexers.add(modIndexer);
             System.out.println("Created indexer with id " + modIndexer.getId());
