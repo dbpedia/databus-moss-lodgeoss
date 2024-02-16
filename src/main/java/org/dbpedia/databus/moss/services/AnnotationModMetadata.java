@@ -28,7 +28,7 @@ public class AnnotationModMetadata {
 
     public AnnotationModMetadata(String databusResourceUri) {
         this.version = "1.0.0";
-        this.modType = "SimpleAnnotationMod";
+        this.modType = "simpleAnnotationMod";
         this.databusResourceUri = databusResourceUri;
         this.time = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").format(LocalDateTime.now());
         this.nameSpaces = Map.of("dc", "http://purl.org/dc/terms/",
