@@ -23,7 +23,7 @@ public class IndexingTask implements Runnable {
     @Override
     public void run()  {
 
-        System.out.println("Ich bims der runner auf thread " + Thread.currentThread().threadId());
+        System.out.println("Ich bims der runner auf thread " + Thread.currentThread().getId());
        
         try {
             File indexJar = ResourceUtils.getFile("classpath:lookup-indexer.jar");
@@ -49,7 +49,7 @@ public class IndexingTask implements Runnable {
             System.out.println("gefahr 2");
             e.printStackTrace();
         }
-        System.out.println("Fertig auf " + Thread.currentThread().threadId());
+        System.out.println("Fertig auf " + Thread.currentThread().getId());
        
         // Print exit code for debugging
     }

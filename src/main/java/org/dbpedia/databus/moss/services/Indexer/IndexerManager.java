@@ -65,14 +65,6 @@ public class IndexerManager {
         rebuildIndices();
     }
 
-    /**
-    public IndexerManager(List<String> annotationMods, List<String> indexers, HashMap<String, List<ModIndexer>> indexerMappings) {
-        this.indexers = indexers;
-        this.indexerMappings = indexerMappings;
-        this.annotationModList = annotationMods;
-    }
-     */
-
     public void stop() {
         try {
             this.scheduler.shutdown();

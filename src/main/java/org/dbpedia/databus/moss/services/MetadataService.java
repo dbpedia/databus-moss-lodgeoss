@@ -89,6 +89,20 @@ import java.util.List;
         db.close();
     }
 
+    public String buildURL(String command, String repo, String path) {
+        try {
+            URIBuilder builder = new URIBuilder(this.gStoreBaseURL);
+            builder.setPath("graph/" + command);
+            builder.setParameter("repo", repo);
+            builder.setParameter("path", path);
+
+            return builder.build().toString();
+        } catch (URISyntaxException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
     public String buildURL(String baseURL, List<String> pathSegments) {
         String identifier = "";
         try {
@@ -112,6 +126,8 @@ import java.util.List;
             builder.setPath(path);
             builder.setParameter("repo", pathValues[lastIndex - 2]);
             builder.setParameter("path", pathValues[lastIndex - 1]);
+
+            System.out.println(pathValues);
 
             identifier = builder.build().toString();
         } catch (URISyntaxException e) {
@@ -190,7 +206,7 @@ import java.util.List;
 
         annotationModel = getModel(annotationModel, gStoreIdentifier);
 
-        simpleAnnotationMod.annotateModel(annotationModel, databusResource, annotationRequest);
+        simpleAnnotationMod.annotateModel(annotationModel, fileIdentifier, databusResource, annotationRequest);
 
         try {
             saveModel(annotationModel, gStoreIdentifier);
@@ -211,7 +227,7 @@ import java.util.List;
         // Create resources
         Resource databusResource = ResourceFactory.createResource(databusIdentifier);
 
-        complexAnnotationMod.annotateModel(annotationModel, databusResource);
+        complexAnnotationMod.annotateModel(annotationModel, fileIdentifier, databusResource);
         RDFDataMgr.write(System.out, annotationModel, Lang.TURTLE);
 
         try {
@@ -234,6 +250,9 @@ import java.util.List;
         System.out.println("#########################################");
 
         String jsonString = outputStream.toString("UTF-8");
+        System.out.println("jsonjsonjsonjsonjsonjsonjsonjsonjsonjson");
+        System.out.println(jsonString);
+        System.out.println("jsonjsonjsonjsonjsonjsonjsonjsonjsonjson");
         RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
         headers.add("Accept", "application/ld+json");
@@ -265,7 +284,9 @@ import java.util.List;
             URI endpoint = new URI(gStoreEndpoint);
             ResponseEntity<String> response = restTemplate.getForEntity(endpoint, String.class);
             String serverResponse = response.getBody();
+            System.out.println("ResponseResponseResponseResponseResponseResponseResponse");
             System.out.println(serverResponse);
+            System.out.println("ResponseResponseResponseResponseResponseResponseResponse");
 
             if(serverResponse != null) {
                 ByteArrayInputStream targetStream = new ByteArrayInputStream(serverResponse.getBytes("UTF-8"));

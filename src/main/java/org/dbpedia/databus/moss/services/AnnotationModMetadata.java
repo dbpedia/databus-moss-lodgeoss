@@ -49,8 +49,8 @@ public class AnnotationModMetadata {
                                 "mod", "http://dataid.dbpedia.org/ns/mod#");
     }
 
-    public void annotateModel(Model annotationModel, Resource databusResource, SimpleAnnotationRequest annotationRequest) {
-        Resource annotationDocumentResource = ResourceFactory.createResource(modFragment);
+    public void annotateModel(Model annotationModel, String fileIdentifier, Resource databusResource, SimpleAnnotationRequest annotationRequest) {
+        Resource annotationDocumentResource = ResourceFactory.createResource(fileIdentifier + modFragment);
         Resource modTypResource = ResourceFactory.createResource("https://dataid.dbpedia.org/moss#" + this.modType);
 
         for(String tag: annotationRequest.getTags()) {
@@ -64,8 +64,8 @@ public class AnnotationModMetadata {
     }
 
 
-    public void annotateModel(Model annotationModel, Resource databusResource) {
-        Resource annotationDocumentResource = ResourceFactory.createResource(modFragment);
+    public void annotateModel(Model annotationModel, String fileIdentifier, Resource databusResource) {
+        Resource annotationDocumentResource = ResourceFactory.createResource(fileIdentifier + modFragment);
         Resource modTypResource = ResourceFactory.createResource("https://dataid.dbpedia.org/moss#" + this.modType);
 
         RDFDataMgr.read(annotationModel, annotationGraph, Lang.TURTLE);
