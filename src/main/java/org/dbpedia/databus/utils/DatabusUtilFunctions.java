@@ -1,5 +1,6 @@
 package org.dbpedia.databus.utils;
 
+import org.apache.http.client.utils.URIBuilder;
 import org.apache.jena.query.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -9,6 +10,8 @@ import java.net.*;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Pattern;
 
 public final class DatabusUtilFunctions {
@@ -86,6 +89,35 @@ public final class DatabusUtilFunctions {
             e.printStackTrace();
             return -1;
         }
+    }
+
+    public static String buildURL(String baseURL, List<String> pathSegments) {
+        String identifier = "";
+        try {
+            URIBuilder builder = new URIBuilder(baseURL);
+            builder.setPathSegments(pathSegments);
+
+            identifier = builder.build().toString();
+        } catch (URISyntaxException e) {
+            e.printStackTrace();
+        }
+        return  identifier;
+    }
+
+    public static String createAnnotationFileIdentifier(String baseURL, String modType, String databusIdentifier) {
+        List<String> pathSegments = new ArrayList<String>();
+
+        databusIdentifier = databusIdentifier.replaceAll("http[s]?://", "");
+        String[] resourceSegments = databusIdentifier.split("/");
+        pathSegments.add("annotations");
+        pathSegments.add(modType);
+
+        for (String segment : resourceSegments) {
+            pathSegments.add(segment);
+        }
+
+        pathSegments.add("annotations.jsonld");
+        return buildURL(baseURL, pathSegments);
     }
 
     @Cacheable("databusEndpoints")

@@ -13,6 +13,7 @@ public class ModIndexer {
     private HashSet<String> todos;
     // private ExecutorService worker;
     private ModIndexerConfig config;
+    @SuppressWarnings("rawtypes")
     private Future indexingFuture;
     private String directory;
     // private final int fixedPoolSize = 1;

@@ -115,10 +115,10 @@ public class IndexerManager {
     }
 
     
-    public void updateIndices(String modType, String resourceURI) {
+    public void updateIndices(String modType, String modURI) {
         List<ModIndexer> correspondingIndexers = indexerMappings.get(modType);
         for (ModIndexer indexer : correspondingIndexers) {
-            indexer.addTodo(resourceURI);
+            indexer.addTodo(modURI);
             System.out.println("Indexer " + indexer.getId() + "hat jetzt todos: " + indexer.getTodos());
         }
     }

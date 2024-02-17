@@ -19,6 +19,7 @@ public class IndexingTask implements Runnable {
         this.command = command;
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     public void run()  {
 

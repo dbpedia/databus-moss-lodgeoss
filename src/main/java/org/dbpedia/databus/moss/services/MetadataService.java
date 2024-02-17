@@ -3,8 +3,6 @@ package org.dbpedia.databus.moss.services;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
-import org.apache.jena.rdf.model.Resource;
-import org.apache.jena.rdf.model.ResourceFactory;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.riot.RDFParser;
@@ -12,10 +10,8 @@ import org.dbpedia.databus.moss.services.Indexer.IndexerManager;
 import org.dbpedia.databus.moss.services.Indexer.IndexerManagerConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.util.ResourceUtils;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
@@ -131,7 +127,7 @@ import java.util.List;
     public String creatFileIdentifier(String baseURLRaw, String modType, String databusIdentifier) {
         List<String> pathSegments = new ArrayList<String>();
 
-        databusIdentifier = databusIdentifier.replaceAll(this.regexResourcePrefix, "");
+        databusIdentifier = databusIdentifier.replaceAll( "http[s]?://", "");
         String[] resourceSegments = databusIdentifier.split("/");
 
         pathSegments.add("annotations");
@@ -148,10 +144,9 @@ import java.util.List;
 
     public String createGStoreIdentifier(String fileIdentifier) {
         String segments = fileIdentifier.replace(this.baseURI + "/", "");
-        String[] pathValues = segments.split("/", 2);
-        // String baseURL = "http://localhost:3002";
-        return buildURL(this.gStoreBaseURL, pathValues);
+        return this.gStoreBaseURL + "/g/" + segments;
     }
+
 
     public URI createEndpointURL(String scheme, String gStoreBaseURL, String repository, String path) {
         List<String> pathSegments = new ArrayList<String>();
@@ -185,28 +180,42 @@ import java.util.List;
         return pathSegments;
     }
 
-    public void createAnnotation(SimpleAnnotationRequest annotationRequest) {
-        String databusIdentifier = annotationRequest.getDatabusFile();
-        AnnotationModMetadata simpleAnnotationMod = new AnnotationModMetadata(databusIdentifier);
+    public String createSimpleAnnotation(SimpleAnnotationRequest annotationRequest) {
+        // Get the resource to annotate
+        String databusResourceURI = annotationRequest.getDatabusFile();
 
-        String fileIdentifier = creatFileIdentifier(this.baseURI, simpleAnnotationMod.modType, databusIdentifier);
-        String gStoreIdentifier = createGStoreIdentifier(fileIdentifier);
+        // Create annotation data for the resource
+        SimpleAnnotationModData simpleAnnotationMod = new SimpleAnnotationModData(this.baseURI, databusResourceURI);
 
-        Model annotationModel = ModelFactory.createDefaultModel();
-        Resource databusResource = ResourceFactory.createResource(databusIdentifier);
+        // Check what we already have in the database
+        Model currentModel = getModel(simpleAnnotationMod.getFileURI());
 
-        annotationModel = getModel(annotationModel, gStoreIdentifier);
+        // Add annotation statements from the existing model
+        simpleAnnotationMod.addSubjectsFromModel(currentModel);
 
-        simpleAnnotationMod.annotateModel(annotationModel, fileIdentifier, databusResource, annotationRequest);
-
+        // Add new annotations, hashset will deduplicate
+        for(String tag: annotationRequest.getTags()) {
+            simpleAnnotationMod.addSubject(tag);
+        }
+       
+        // Convert the data to jena model and save
         try {
-            saveModel(annotationModel, gStoreIdentifier);
+            saveModel(simpleAnnotationMod.toModel(), createSaveURI(simpleAnnotationMod.getFileURI()));
+            return simpleAnnotationMod.getId();
         } catch (IOException ioe) {
             ioe.printStackTrace();
+            return null;
         }
     }
 
+    
+    public String createSaveURI(String annotationFileURI) {
+        String path = annotationFileURI.replaceAll( baseURI + "/annotations/", "");
+        return this.gStoreBaseURL + "/graph/save?repo=annotations&path=" + path;
+    }
+
     public void createComplexAnnotation(String databusIdentifier, InputStream graphInputStream) {
+        /*
         String modVersion = "0.0.0";
         AnnotationModMetadata complexAnnotationMod = new AnnotationModMetadata(modVersion, "complex", databusIdentifier, graphInputStream);
         String fileIdentifier = creatFileIdentifier(this.baseURI, complexAnnotationMod.modType, databusIdentifier);
@@ -225,12 +234,14 @@ import java.util.List;
             saveModel(annotationModel, gStoreIdentifier);
         } catch (IOException ioe) {
             ioe.printStackTrace();
-        }
+        } */
     }
 
     
 
     private void saveModel(Model annotationModel, String gStoreEndpoint) throws IOException {
+
+        System.out.println("Saving with " + gStoreEndpoint);
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         RDFDataMgr.write(outputStream, annotationModel, Lang.JSONLD);
 
@@ -263,7 +274,10 @@ import java.util.List;
         } 
     }
 
-    Model getModel(Model model, String gStoreEndpoint) {
+    Model getModel(String fileId) {
+       
+        String gstoreIdentifier = createGStoreIdentifier(fileId);
+        Model model = ModelFactory.createDefaultModel();
 
         RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
@@ -271,9 +285,8 @@ import java.util.List;
         headers.add("Content-Type", "application/ld+json");
 
         try {
-            gStoreEndpoint = gStoreEndpoint.replaceAll("save", "read");
-            URI endpoint = new URI(gStoreEndpoint);
-            ResponseEntity<String> response = restTemplate.getForEntity(endpoint, String.class);
+            URI gstoreURI = new URI(gstoreIdentifier);
+            ResponseEntity<String> response = restTemplate.getForEntity(gstoreURI, String.class);
             String serverResponse = response.getBody();
             System.out.println("ResponseResponseResponseResponseResponseResponseResponse");
             System.out.println(serverResponse);

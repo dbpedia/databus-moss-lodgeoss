@@ -8,13 +8,24 @@ maxBufferedDocs: 100000
 commitInterval: 1000
 indexFields:
   - fieldName: annotation
+    documentVariable: mod
+    type: uri
+    query: >
+      SELECT DISTINCT ?mod ?annotation WHERE {
+          GRAPH ?g {
+            ?mod a <https://dataid.dbpedia.org/moss#SimpleAnnotationMod> .
+            ?mod <http://purl.org/dc/elements/1.1/subject> ?annotation .
+          }
+          %VALUES%
+      }
+  - fieldName: used
     documentVariable: resource
     type: uri
     query: >
-      SELECT DISTINCT ?resource ?annotation WHERE {
+      SELECT DISTINCT ?resource ?used WHERE {
           GRAPH ?g {
             ?mod a <https://dataid.dbpedia.org/moss#SimpleAnnotationMod> .
-              ?resource <http://purl.org/dc/elements/1.1/subject> ?annotation .
+            ?mod <http://www.w3.org/ns/prov#used> ?used .
           }
           %VALUES%
       }

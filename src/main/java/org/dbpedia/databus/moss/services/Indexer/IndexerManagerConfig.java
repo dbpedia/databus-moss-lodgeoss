@@ -1,9 +1,6 @@
 package org.dbpedia.databus.moss.services.Indexer;
 
 import java.util.List;
-
-import org.springframework.util.ResourceUtils;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
