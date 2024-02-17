@@ -66,7 +66,7 @@ public class SimpleAnnotationModData {
             RDFNode   object    = stmt.getObject();      // get the object
 
             System.out.println(predicate.getURI());
-            if(predicate.getURI() == DC.subject.getURI()) {
+            if(predicate.equals(DC.subject)) {
                 System.out.println("Adding subject: " + object.toString());
                 subjects.add(object.toString());
             }
