@@ -59,11 +59,15 @@ public class SimpleAnnotationModData {
 
         // print out the predicate, subject and object of each statement
         while (iter.hasNext()) {
+            
+            System.out.println("Searching Model");
             Statement stmt      = iter.nextStatement();  // get next statement
             Property  predicate = stmt.getPredicate();   // get the predicate
             RDFNode   object    = stmt.getObject();      // get the object
 
+            System.out.println(predicate.getURI());
             if(predicate.getURI() == DC.subject.getURI()) {
+                System.out.println("Adding subject: " + object.toString());
                 subjects.add(object.toString());
             }
         }

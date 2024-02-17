@@ -190,6 +190,8 @@ import java.util.List;
         // Check what we already have in the database
         Model currentModel = getModel(simpleAnnotationMod.getFileURI());
 
+        System.out.println("Loaded model from gstore");
+
         // Add annotation statements from the existing model
         simpleAnnotationMod.addSubjectsFromModel(currentModel);
 
@@ -288,9 +290,9 @@ import java.util.List;
             URI gstoreURI = new URI(gstoreIdentifier);
             ResponseEntity<String> response = restTemplate.getForEntity(gstoreURI, String.class);
             String serverResponse = response.getBody();
-            System.out.println("ResponseResponseResponseResponseResponseResponseResponse");
+            System.out.println("============= MODEL FROM GSTORE ================");
             System.out.println(serverResponse);
-            System.out.println("ResponseResponseResponseResponseResponseResponseResponse");
+            System.out.println("============= MODEL FROM GSTORE ================");
 
             if(serverResponse != null) {
                 ByteArrayInputStream targetStream = new ByteArrayInputStream(serverResponse.getBytes("UTF-8"));
