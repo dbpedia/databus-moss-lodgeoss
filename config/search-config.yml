@@ -1,0 +1,23 @@
+version: "1.0"
+indexPath: ./index
+exactMatchBoost: 10
+prefixMatchBoost: 5
+fuzzyMatchBoost: 2
+fuzzyEditDistance: 2
+fuzzyPrefixLength: 2
+boostFormula: 1+annotatedCount
+maxResults: 1000
+format: JSON
+minScore: 0.1
+queryFields:
+  - fieldName: id
+    weight: 1
+    exact: true
+    required: true
+    highlight: false
+    queryByDefault: false
+  - fieldName: label
+    weight: 10
+    highlight: true
+    tokenize: true
+    queryByDefault: true

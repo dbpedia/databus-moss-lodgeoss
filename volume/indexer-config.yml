@@ -1,4 +1,0 @@
-indexers:
-  - configPath: ./simple/index.yml
-    mods: 
-      - SimpleAnnotationMod

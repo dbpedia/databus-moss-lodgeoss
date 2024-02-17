@@ -7,16 +7,14 @@ import java.util.List;
 
 public class IndexingTask implements Runnable {
 
-    String command;
     List<String> todos;
-    String indexer;
-    String directory;
+    String configPath;
+    String indexerJarPath;
 
-    public IndexingTask(String indexer, String command, List<String> todos, String directory) {
+    public IndexingTask(String configPath, List<String> todos, String indexerJarPath) {
         this.todos = todos;
-        this.directory = directory;
-        this.indexer = indexer;
-        this.command = command;
+        this.indexerJarPath = indexerJarPath;
+        this.configPath = configPath;
     }
 
     @SuppressWarnings("deprecation")
@@ -26,9 +24,9 @@ public class IndexingTask implements Runnable {
         System.out.println("Ich bims der runner auf thread " + Thread.currentThread().getId());
        
         try {
-            File configFile = new File(directory + "/" + this.indexer);
+            File configFile = new File(configPath);
 
-            ProcessBuilder processBuilder = new ProcessBuilder("java", "-jar", directory + "/lookup-indexer.jar");
+            ProcessBuilder processBuilder = new ProcessBuilder("java", "-jar", indexerJarPath);
             processBuilder.command().add("-c");
             processBuilder.command().add(configFile.getAbsolutePath());
             processBuilder.command().add("-r");

@@ -58,12 +58,16 @@ import java.util.List;
                            @Value("${virt.usr}") String virtUsr,
                            @Value("${virt.psw}") String virtPsw,
                            @Value("${file.vol}") String volume,
+                           @Value("${file.configPath}") String configPath,
+                           @Value("${file.indexerJarPath}") String indexerJarPath,
                            @Value("${uri.base}") String baseURI,
                            @Value("${uri.gstore}") String gStoreBaseURL) {
 
-        File file = new File(volume + "/indexer-config.yml");
+        File file = new File(configPath);
         IndexerManagerConfig indexerConfig = IndexerManagerConfig.fromJson(file);
-        this.indexerManager = new IndexerManager(volume, indexerConfig);
+
+        String configRootPath = file.getParentFile().getAbsolutePath();
+        this.indexerManager = new IndexerManager(configRootPath, indexerJarPath, indexerConfig);
         this.virtUrl = virtUrl;
         this.virtUsr = virtUsr;
         this.virtPsw = virtPsw;

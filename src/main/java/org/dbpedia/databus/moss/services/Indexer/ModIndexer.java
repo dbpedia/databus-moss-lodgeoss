@@ -15,12 +15,14 @@ public class ModIndexer {
     private ModIndexerConfig config;
     @SuppressWarnings("rawtypes")
     private Future indexingFuture;
-    private String directory;
+    private String configRootPath;
+    private String indexerJarPath;
     // private final int fixedPoolSize = 1;
 
-    public ModIndexer(ModIndexerConfig config, String directory) {
+    public ModIndexer(ModIndexerConfig config, String configRootPath, String indexerJarPath) {
         this.config = config;
-        this.directory = directory;
+        this.configRootPath = configRootPath;
+        this.indexerJarPath = indexerJarPath;
         this.todos = new HashSet<String>();
         this.id = UUID.randomUUID().toString();
         // this.worker = Executors.newFixedThreadPool(fixedPoolSize);
@@ -70,7 +72,8 @@ public class ModIndexer {
         resources.addAll(this.todos);
         this.todos.clear();
 
-        IndexingTask task = new IndexingTask(this.config.getConfigPath(), "command", resources, directory);
+        String configPath = configRootPath + "/" + config.getConfigPath();
+        IndexingTask task = new IndexingTask(configPath, resources, indexerJarPath);
         this.indexingFuture = executor.submit(task);
     }
 

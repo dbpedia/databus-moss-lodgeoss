@@ -24,7 +24,7 @@ public class IndexerManager {
     private ScheduledExecutorService scheduler;
 
 
-    public IndexerManager(String volumePath, IndexerManagerConfig config) {
+    public IndexerManager(String configRootPath, String indexerJarPath, IndexerManagerConfig config) {
 
         this.indexers = new ArrayList<ModIndexer>();
         this.indexerMappings = new HashMap<String, List<ModIndexer>>();
@@ -35,7 +35,7 @@ public class IndexerManager {
 
         for(ModIndexerConfig indexerConfig : config.getIndexers()) {
 
-            ModIndexer modIndexer = new ModIndexer(indexerConfig, volumePath );
+            ModIndexer modIndexer = new ModIndexer(indexerConfig, configRootPath, indexerJarPath);
 
             this.indexers.add(modIndexer);
             System.out.println("Created indexer with id " + modIndexer.getId());
