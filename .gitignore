@@ -1,5 +1,6 @@
 /target/
 /indices
+/config/indexers/index
 .idea/
 .settings
 .project
