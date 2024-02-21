@@ -46,7 +46,7 @@ public class SimpleAnnotationModData {
                                 "moss", "https://dataid.dbpedia.org/moss#",
                                 "rdfs", RDFS.getURI(),
                                 "mod", "http://dataid.dbpedia.org/ns/mod#");
-        this.fileURI = DatabusUtilFunctions.createAnnotationFileIdentifier(baseURL, modType, databusResourceUri);
+        this.fileURI = DatabusUtilFunctions.createAnnotationFileURI(baseURL, modType, databusResourceUri);
         this.subjects = new HashSet<String>();
     }
 

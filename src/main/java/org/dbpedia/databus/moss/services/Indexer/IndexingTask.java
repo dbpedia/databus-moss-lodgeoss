@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
-
 public class IndexingTask implements Runnable {
 
     List<String> todos;
@@ -19,23 +18,27 @@ public class IndexingTask implements Runnable {
 
     @SuppressWarnings("deprecation")
     @Override
-    public void run()  {
+    public void run() {
 
         System.out.println("Ich bims der runner auf thread " + Thread.currentThread().getId());
-       
+
         try {
             File configFile = new File(configPath);
 
             ProcessBuilder processBuilder = new ProcessBuilder("java", "-jar", indexerJarPath);
             processBuilder.command().add("-c");
             processBuilder.command().add(configFile.getAbsolutePath());
-            processBuilder.command().add("-r");
-            processBuilder.command().addAll(todos);
+
+            if (todos.size() > 0) {
+                processBuilder.command().add("-r");
+                processBuilder.command().addAll(todos);
+            }
+            
             processBuilder.inheritIO();
 
             System.out.println("Starting process");
             Process process = processBuilder.start();
-          
+
             // Wait for the process to finish
             process.waitFor();
 
@@ -47,7 +50,7 @@ public class IndexingTask implements Runnable {
             e.printStackTrace();
         }
         System.out.println("Fertig auf " + Thread.currentThread().getId());
-       
+
         // Print exit code for debugging
     }
 }

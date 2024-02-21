@@ -1,0 +1,18 @@
+version: "1.0"
+indexPath: ./index
+indexMode: INDEX_SPARQL_ENDPOINT
+sparqlEndpoint: http://localhost:2002/sparql
+cleanIndex: false
+maxBufferedDocs: 100000
+commitInterval: 1000
+indexFields:
+  - fieldName: label
+    documentVariable: class
+    query: >
+      SELECT ?class ?label WHERE {
+        {
+          ?class a <http://www.w3.org/2002/07/owl#Class> .
+          ?class <http://www.w3.org/2000/01/rdf-schema#label> ?label .
+          FILTER(lang(?label) = 'en')
+        }
+      } 

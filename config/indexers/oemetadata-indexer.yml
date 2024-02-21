@@ -1,0 +1,31 @@
+version: "1.0"
+# indexPath: C:\Users\janfo\Documents\Work\databus-moss\indices\simple
+indexPath: ./index
+indexMode: INDEX_SPARQL_ENDPOINT
+sparqlEndpoint: http://localhost:2002/sparql
+cleanIndex: true
+maxBufferedDocs: 100000
+commitInterval: 1000
+indexFields:
+  - fieldName: annotation
+    documentVariable: mod
+    type: uri
+    query: >
+      SELECT DISTINCT ?mod ?annotation WHERE {
+          GRAPH ?g {
+            ?mod a <https://dataid.dbpedia.org/moss#OEMetadataMod> .
+            ?s <https://saref.etsi.org/core/isAbout> ?annotation .
+          }
+          %VALUES%
+      }
+  - fieldName: used
+    documentVariable: mod
+    type: uri
+    query: >
+      SELECT DISTINCT ?mod ?used WHERE {
+          GRAPH ?g {
+            ?mod a <https://dataid.dbpedia.org/moss#OEMetadataMod> .
+            ?mod <http://www.w3.org/ns/prov#used> ?used .
+          }
+          %VALUES%
+      }

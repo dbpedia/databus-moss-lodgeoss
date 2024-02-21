@@ -27,7 +27,6 @@ import java.nio.charset.StandardCharsets;
 import java.io.ByteArrayOutputStream;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.File;
 import java.net.URISyntaxException;
 import java.net.http.HttpResponse;
@@ -53,6 +52,7 @@ import java.util.List;
     private final String regexResourcePrefix = "http[s]?://";
     @SuppressWarnings("unused")
     private IndexerManager indexerManager;
+    private GstoreConnector gstoreConnector;
 
     public MetadataService(@Value("${virt.url}") String virtUrl,
                            @Value("${virt.usr}") String virtUsr,
@@ -61,19 +61,21 @@ import java.util.List;
                            @Value("${file.configPath}") String configPath,
                            @Value("${file.indexerJarPath}") String indexerJarPath,
                            @Value("${uri.base}") String baseURI,
-                           @Value("${uri.gstore}") String gStoreBaseURL) {
+                           @Value("${uri.gstore}") String gstoreBaseURL) {
 
         File file = new File(configPath);
         IndexerManagerConfig indexerConfig = IndexerManagerConfig.fromJson(file);
 
+        this.gstoreConnector = new GstoreConnector(gstoreBaseURL);
+
         String configRootPath = file.getParentFile().getAbsolutePath();
-        this.indexerManager = new IndexerManager(configRootPath, indexerJarPath, indexerConfig);
+        this.indexerManager = new IndexerManager(configRootPath, indexerJarPath, indexerConfig, gstoreConnector);
         this.virtUrl = virtUrl;
         this.virtUsr = virtUsr;
         this.virtPsw = virtPsw;
         this.baseDir = new File(volume);
         this.baseURI = baseURI;
-        this.gStoreBaseURL = gStoreBaseURL;
+        this.gStoreBaseURL = gstoreBaseURL;
     }
 
     @Override
@@ -189,38 +191,43 @@ import java.util.List;
         String databusResourceURI = annotationRequest.getDatabusFile();
 
         // Create annotation data for the resource
-        SimpleAnnotationModData simpleAnnotationMod = new SimpleAnnotationModData(this.baseURI, databusResourceURI);
+        SimpleAnnotationModData modData = new SimpleAnnotationModData(this.baseURI, databusResourceURI);
 
         // Check what we already have in the database
-        Model currentModel = getModel(simpleAnnotationMod.getFileURI());
+        Model currentModel = getModel(modData.getFileURI());
 
         System.out.println("Loaded model from gstore");
 
         // Add annotation statements from the existing model
-        simpleAnnotationMod.addSubjectsFromModel(currentModel);
+        modData.addSubjectsFromModel(currentModel);
 
         // Add new annotations, hashset will deduplicate
         for(String tag: annotationRequest.getTags()) {
-            simpleAnnotationMod.addSubject(tag);
+            modData.addSubject(tag);
         }
        
         // Convert the data to jena model and save
         try {
-            saveModel(simpleAnnotationMod.toModel(), createSaveURI(simpleAnnotationMod.getFileURI()));
-            return simpleAnnotationMod.getId();
+            saveModel(modData.toModel(), createSaveURI(modData.getFileURI()));
+            return modData.getId();
         } catch (IOException ioe) {
             ioe.printStackTrace();
             return null;
         }
     }
 
-    
-    public String createSaveURI(String annotationFileURI) {
-        String path = annotationFileURI.replaceAll( baseURI + "/annotations/", "");
-        return this.gStoreBaseURL + "/graph/save?repo=annotations&path=" + path;
-    }
 
-    public void createComplexAnnotation(String databusIdentifier, InputStream graphInputStream) {
+    public RDFAnnotationModData createRDFAnnotation(RDFAnnotationRequest request) {
+
+        RDFAnnotationModData modData = new RDFAnnotationModData(this.baseURI, request);
+
+        try {
+            saveModel(modData.toModel(), createSaveURI(modData.getFileURI()));
+        } catch (IOException ioe) {
+            ioe.printStackTrace();
+        }
+
+        return modData;
         /*
         String modVersion = "0.0.0";
         AnnotationModMetadata complexAnnotationMod = new AnnotationModMetadata(modVersion, "complex", databusIdentifier, graphInputStream);
@@ -241,6 +248,12 @@ import java.util.List;
         } catch (IOException ioe) {
             ioe.printStackTrace();
         } */
+    }
+
+        
+    public String createSaveURI(String annotationFileURI) {
+        String path = annotationFileURI.replaceAll( baseURI + "/annotations/", "");
+        return this.gStoreBaseURL + "/graph/save?repo=annotations&path=" + path;
     }
 
     
