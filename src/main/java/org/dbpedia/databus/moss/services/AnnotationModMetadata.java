@@ -68,7 +68,7 @@ public class AnnotationModMetadata {
         Resource annotationDocumentResource = ResourceFactory.createResource(fileIdentifier + modFragment);
         Resource modTypResource = ResourceFactory.createResource("https://dataid.dbpedia.org/moss#" + this.modType);
 
-        RDFDataMgr.read(annotationModel, annotationGraph, Lang.TURTLE);
+        RDFDataMgr.read(annotationModel, annotationGraph, Lang.JSONLD);
         this.annotateModInfo(annotationModel, databusResource, annotationDocumentResource, modTypResource);
     }
 

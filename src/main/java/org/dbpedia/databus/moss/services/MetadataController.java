@@ -63,11 +63,12 @@ public class MetadataController {
     }
 
     @RequestMapping(value = {"/annotate"})
-    public SimpleAnnotationRequest complexAnnotate(@RequestParam String databusFile, @RequestParam MultipartFile annotationGraph) {
+    public SimpleAnnotationRequest complexAnnotate(@RequestParam String databusFile, @RequestBody MultipartFile annotationGraph) {
 
         try {
             String content = new String(annotationGraph.getBytes(), StandardCharsets.UTF_8);
             System.out.println(content);
+
             InputStream graphInputStream = annotationGraph.getInputStream();
 
             metadataService.createComplexAnnotation(databusFile, graphInputStream);
