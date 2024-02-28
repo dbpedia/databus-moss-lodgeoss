@@ -19,10 +19,10 @@ indexFields:
           %VALUES%
       }
   - fieldName: used
-    documentVariable: resource
+    documentVariable: mod
     type: uri
     query: >
-      SELECT DISTINCT ?resource ?used WHERE {
+      SELECT DISTINCT ?mod ?used WHERE {
           GRAPH ?g {
             ?mod a <https://dataid.dbpedia.org/moss#SimpleAnnotationMod> .
             ?mod <http://www.w3.org/ns/prov#used> ?used .

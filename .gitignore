@@ -1,11 +1,13 @@
 /target/
 /indices
+/config/indexers/index
 .idea/
 .settings
 .project
 .classpath
 .env
 openenergy/lookup/index/
+/devenv/data
 
 *.iml
 *.md5

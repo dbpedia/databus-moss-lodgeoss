@@ -10,6 +10,7 @@ import java.io.IOException;
 
 
 public class IndexerManagerConfig {
+    private List<DataLoaderConfig> loaders;
     private List<ModIndexerConfig> indexers;
 
     public List<ModIndexerConfig> getIndexers() {
@@ -20,6 +21,16 @@ public class IndexerManagerConfig {
         this.indexers = indexerConfigs;
     }
 
+
+    public List<DataLoaderConfig> getLoaders() {
+        return loaders;
+    }
+
+    public void setLoaders(List<DataLoaderConfig> loaders) {
+        this.loaders = loaders;
+    }
+
+    
     public static IndexerManagerConfig fromJson(File file) {
         try {
             ObjectMapper mapper = new ObjectMapper(new YAMLFactory().enable(YAMLGenerator.Feature.MINIMIZE_QUOTES));

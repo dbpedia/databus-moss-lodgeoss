@@ -6,6 +6,9 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+
+import org.dbpedia.databus.moss.services.GstoreConnector;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -24,13 +27,21 @@ public class IndexerManager {
     private ScheduledExecutorService scheduler;
 
 
-    public IndexerManager(String configRootPath, String indexerJarPath, IndexerManagerConfig config) {
+    public IndexerManager(String configRootPath, String indexerJarPath, IndexerManagerConfig config,
+        GstoreConnector gstoreConnector) {
 
         this.indexers = new ArrayList<ModIndexer>();
         this.indexerMappings = new HashMap<String, List<ModIndexer>>();
 
         if(config == null){
             return;
+        }
+
+        for(DataLoaderConfig loaderConfig : config.getLoaders()) {
+            DataLoader loader = new DataLoader(loaderConfig, gstoreConnector, 
+                configRootPath, indexerJarPath);
+                
+            loader.load();
         }
 
         for(ModIndexerConfig indexerConfig : config.getIndexers()) {
@@ -41,7 +52,9 @@ public class IndexerManager {
             System.out.println("Created indexer with id " + modIndexer.getId());
             System.out.println("Config path: " + modIndexer.getConfig().getConfigPath());
             System.out.println("Mods: " + modIndexer.getConfig().getMods());
-        }
+        }this.worker = new ThreadPoolExecutor(fixedPoolSize, fixedPoolSize,
+        0L, TimeUnit.MILLISECONDS,
+        new LinkedBlockingQueue<Runnable>());
 
         for(ModIndexer indexer : this.indexers) {
             for(String modType : indexer.getConfig().getMods()) {

@@ -1,4 +1,11 @@
+loaders:
+  - collectionURI: https://databus.dbpedia.org/janfo/collections/moss-ontologies
+    indexer:
+      configPath: ./indexers/ontology-indexer.yml
 indexers:
   - configPath: ./indexers/simple.yml
     mods: 
       - SimpleAnnotationMod
+  - configPath: ./indexers/oemetadata-indexer.yml
+    mods: 
+      - OEMetadataMod

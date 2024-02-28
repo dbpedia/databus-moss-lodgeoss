@@ -1,7 +1,7 @@
 package org.dbpedia.databus.moss.services;
 
+import java.io.IOException;
 import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 import java.util.regex.Pattern;
 
 import javax.servlet.http.HttpServletRequest;
@@ -18,6 +18,10 @@ import org.springframework.web.multipart.MultipartFile;
 import com.google.gson.Gson;
 
 import org.apache.jena.atlas.json.io.parserjavacc.javacc.JSON_Parser;
+import org.apache.jena.rdf.model.Model;
+import org.apache.jena.rdf.model.ModelFactory;
+import org.apache.jena.riot.Lang;
+import org.apache.jena.riot.RDFDataMgr;
 
 // @RequestMapping("api")
 @RestController
@@ -50,7 +54,7 @@ public class MetadataController {
         return ResponseEntity.status(response.getStatusCode()).body(response.getBody());
     }
 
-    @RequestMapping(value = {"/annotate/simple"})
+    @RequestMapping(value = { "/annotate/simple" })
     public SimpleAnnotationRequest annotate(@RequestBody String json) {
 
         // Get simple request from json body
@@ -62,16 +66,32 @@ public class MetadataController {
         return annotationRequest;
     }
 
-    @RequestMapping(value = {"/annotate"})
-    public SimpleAnnotationRequest complexAnnotate(@RequestParam String databusFile, @RequestBody MultipartFile annotationGraph) {
+    @RequestMapping(value = { "/annotate" })
+    public SimpleAnnotationRequest complexAnnotate(@RequestParam String databusURI,
+            @RequestParam String modType,
+            @RequestParam String modVersion,
+            @RequestParam MultipartFile annotationGraph) {
+
+        Model annotationModel = ModelFactory.createDefaultModel();
 
         try {
-            String content = new String(annotationGraph.getBytes(), StandardCharsets.UTF_8);
-            System.out.println(content);
+            InputStream annotationGraphInputStream = annotationGraph.getInputStream();
+            RDFDataMgr.read(annotationModel, annotationGraphInputStream, Lang.JSONLD);
+        } catch (IOException e) {
+            // Log and return error
+        }
 
-            InputStream graphInputStream = annotationGraph.getInputStream();
+        RDFAnnotationRequest request = new RDFAnnotationRequest(
+                databusURI,
+                modType,
+                annotationModel,
+                modVersion);
 
-            metadataService.createComplexAnnotation(databusFile, graphInputStream);
+        try {
+
+            RDFAnnotationModData modData = metadataService.createRDFAnnotation(request);
+            this.metadataService.getIndexerManager().updateIndices(modData.getModType(), modData.getModURI());
+
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -80,22 +100,25 @@ public class MetadataController {
     }
 
     // @RequestMapping("/annotations/{databus}/{user}/{group}/{file}")
-    // public ResponseEntity<Resource> getAnnotations(@PathVariable(value="databus") String databus,
-    //         @PathVariable(value = "user") String user,
-    //         @PathVariable(value = "group") String group,
-    //         @PathVariable(value = "file") String file) throws IOException {
+    // public ResponseEntity<Resource> getAnnotations(@PathVariable(value="databus")
+    // String databus,
+    // @PathVariable(value = "user") String user,
+    // @PathVariable(value = "group") String group,
+    // @PathVariable(value = "file") String file) throws IOException {
 
-    //     String suffix = "activity.ttl";
-    //     String volumePath = String.format("./volume/%s/%s/%s/%s/%s", databus, user, group, file, suffix);
-    //     String p = "./volume/databus.testing.org/me/club/cement/activity.ttl";
-    //     File doc = new File(p);
+    // String suffix = "activity.ttl";
+    // String volumePath = String.format("./volume/%s/%s/%s/%s/%s", databus, user,
+    // group, file, suffix);
+    // String p = "./volume/databus.testing.org/me/club/cement/activity.ttl";
+    // File doc = new File(p);
 
-    //     InputStreamResource resource = new InputStreamResource(new FileInputStream(doc));
-    //     HttpHeaders header = new HttpHeaders();
+    // InputStreamResource resource = new InputStreamResource(new
+    // FileInputStream(doc));
+    // HttpHeaders header = new HttpHeaders();
 
-    //     return ResponseEntity.ok()
-    //             .headers(header)
-    //             .contentType(MediaType.TEXT_PLAIN)
-    //             .body(resource);
+    // return ResponseEntity.ok()
+    // .headers(header)
+    // .contentType(MediaType.TEXT_PLAIN)
+    // .body(resource);
     // }
 }
