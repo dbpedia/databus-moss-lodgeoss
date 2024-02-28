@@ -3,11 +3,14 @@ package org.dbpedia.databus.moss.services;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
+import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.rdf.model.ResourceFactory;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.riot.RDFParser;
 import org.dbpedia.databus.moss.services.Indexer.IndexerManager;
 import org.dbpedia.databus.moss.services.Indexer.IndexerManagerConfig;
+import org.dbpedia.databus.utils.DatabusUtilFunctions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -137,13 +140,12 @@ import java.util.List;
         String[] resourceSegments = databusIdentifier.split("/");
 
         pathSegments.add("annotations");
-        pathSegments.add(modType);
 
         for (String segment : resourceSegments) {
             pathSegments.add(segment);
         }
 
-        pathSegments.add("annotations.jsonld");
+        pathSegments.add(modType.toLowerCase() + ".jsonld");
 
         return buildURL(baseURLRaw, pathSegments);
     }
@@ -228,26 +230,7 @@ import java.util.List;
         }
 
         return modData;
-        /*
-        String modVersion = "0.0.0";
-        AnnotationModMetadata complexAnnotationMod = new AnnotationModMetadata(modVersion, "complex", databusIdentifier, graphInputStream);
-        String fileIdentifier = creatFileIdentifier(this.baseURI, complexAnnotationMod.modType, databusIdentifier);
-        String gStoreIdentifier = createGStoreIdentifier(fileIdentifier);
-
-        Model annotationModel = ModelFactory.createDefaultModel();
-        annotationModel = getModel(annotationModel, gStoreIdentifier);
-
-        // Create resources
-        Resource databusResource = ResourceFactory.createResource(databusIdentifier);
-
-        complexAnnotationMod.annotateModel(annotationModel, fileIdentifier, databusResource);
-        RDFDataMgr.write(System.out, annotationModel, Lang.TURTLE);
-
-        try {
-            saveModel(annotationModel, gStoreIdentifier);
-        } catch (IOException ioe) {
-            ioe.printStackTrace();
-        } */
+       
     }
 
         
@@ -296,6 +279,42 @@ import java.util.List;
     Model getModel(String fileId) {
        
         String gstoreIdentifier = createGStoreIdentifier(fileId);
+        Model model = ModelFactory.createDefaultModel();
+
+        RestTemplate restTemplate = new RestTemplate();
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Accept", "application/ld+json");
+        headers.add("Content-Type", "application/ld+json");
+
+        try {
+            URI gstoreURI = new URI(gstoreIdentifier);
+            ResponseEntity<String> response = restTemplate.getForEntity(gstoreURI, String.class);
+            String serverResponse = response.getBody();
+            System.out.println("============= MODEL FROM GSTORE ================");
+            System.out.println(serverResponse);
+            System.out.println("============= MODEL FROM GSTORE ================");
+
+            if(serverResponse != null) {
+                ByteArrayInputStream targetStream = new ByteArrayInputStream(serverResponse.getBytes("UTF-8"));
+                RDFParser.source(targetStream).forceLang(Lang.JSONLD).parse(model);
+            }
+        } catch (URISyntaxException e) {
+            e.printStackTrace();
+        } catch (HttpClientErrorException e) {
+            //: Model not found -> return empty model
+            return model;
+        } catch (RestClientException e) {
+            e.printStackTrace();
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
+
+        return model;
+    }
+
+    Model getModel(String fileId, String gStoreId) {
+       
+        String gstoreIdentifier = gStoreId;
         Model model = ModelFactory.createDefaultModel();
 
         RestTemplate restTemplate = new RestTemplate();
