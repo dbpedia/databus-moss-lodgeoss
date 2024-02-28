@@ -22,7 +22,7 @@ public class IndexerManager {
     
     private ThreadPoolExecutor worker;
 
-    private final int fixedPoolSize = 8;
+    private final int fixedPoolSize = 1;
 
     private ScheduledExecutorService scheduler;
 

@@ -16,7 +16,7 @@ indexFields:
             ?mod a <https://dataid.dbpedia.org/moss#SimpleAnnotationMod> .
             ?mod <http://purl.org/dc/elements/1.1/subject> ?annotation .
           }
-          %VALUES%
+          #VALUES#
       }
   - fieldName: used
     documentVariable: mod
@@ -27,5 +27,5 @@ indexFields:
             ?mod a <https://dataid.dbpedia.org/moss#SimpleAnnotationMod> .
             ?mod <http://www.w3.org/ns/prov#used> ?used .
           }
-          %VALUES%
+          #VALUES#
       }

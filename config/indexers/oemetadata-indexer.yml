@@ -16,7 +16,7 @@ indexFields:
             ?mod a <https://dataid.dbpedia.org/moss#OEMetadataMod> .
             ?s <https://saref.etsi.org/core/isAbout> ?annotation .
           }
-          %VALUES%
+          #VALUES#
       }
   - fieldName: used
     documentVariable: mod
@@ -27,5 +27,5 @@ indexFields:
             ?mod a <https://dataid.dbpedia.org/moss#OEMetadataMod> .
             ?mod <http://www.w3.org/ns/prov#used> ?used .
           }
-          %VALUES%
+          #VALUES#
       }

@@ -44,15 +44,15 @@ public class DataLoader {
     private String collectionURI;
     private ModIndexer indexer;
 
-    public DataLoader(DataLoaderConfig config, GstoreConnector gstoreConnector, 
-        String configRootPath, String indexerJarPath) {
+    public DataLoader(DataLoaderConfig config, GstoreConnector gstoreConnector,
+            String configRootPath, String indexerJarPath) {
         this.gstoreConnector = gstoreConnector;
         this.collectionURI = config.getCollectionURI();
         this.indexer = new ModIndexer(config.getIndexer(), configRootPath, indexerJarPath);
     }
 
     private String[] loadCollectionFileURIs() throws URISyntaxException {
-        
+
         try {
             URI uri = new URI(collectionURI);
             String baseUrl = uri.getScheme() + "://" + uri.getHost();
@@ -74,7 +74,7 @@ public class DataLoader {
                 List<NameValuePair> params = new ArrayList<>();
                 params.add(new BasicNameValuePair("query", sparqlQueryFromCollection));
                 sparqlHttpPost.setEntity(new UrlEncodedFormEntity(params));
-                
+
                 HttpResponse sparqlResponse = httpClient.execute(sparqlHttpPost);
                 HttpEntity sparqlEntity = sparqlResponse.getEntity();
 
@@ -86,7 +86,7 @@ public class DataLoader {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        
+
         return null;
     }
 
@@ -115,24 +115,24 @@ public class DataLoader {
         try {
             String[] fileURIs = loadCollectionFileURIs();
 
-            for(int i = 0; i < fileURIs.length; i++) {
-                System.out.println("Loading " + fileURIs[i]);
-                Model model = cleanModel(loadModel(fileURIs[i]));
-                URI fileURI = new URI(fileURIs[i]);
+            if (fileURIs != null) {
 
-                String filePath = fileURI.getPath();
-                String newPath = filePath.substring(0, filePath.lastIndexOf('.')) + ".jsonld";
-                String gstorePath = fileURI.getHost() + newPath;
+                for (int i = 0; i < fileURIs.length; i++) {
+                    System.out.println("Loading " + fileURIs[i]);
+                    Model model = cleanModel(loadModel(fileURIs[i]));
+                    URI fileURI = new URI(fileURIs[i]);
 
-                System.out.println("Saving to " + gstorePath);
-                
-                gstoreConnector.write("loaded", gstorePath, model);
+                    String filePath = fileURI.getPath();
+                    String newPath = filePath.substring(0, filePath.lastIndexOf('.')) + ".jsonld";
+                    String gstorePath = fileURI.getHost() + newPath;
+
+                    System.out.println("Saving to " + gstorePath);
+
+                    gstoreConnector.write("loaded", gstorePath, model);
+                }
             }
-
             System.out.println("Indexing...");
             indexer.run(null);
-
-
 
         } catch (URISyntaxException e) {
             e.printStackTrace();
@@ -143,7 +143,7 @@ public class DataLoader {
     }
 
     public static boolean containsNonUnicode(String str) {
-        if(str == null) {
+        if (str == null) {
             return false;
         }
 
@@ -155,9 +155,9 @@ public class DataLoader {
 
         StmtIterator iterator = model.listStatements();
 
-        while(iterator.hasNext()) {
+        while (iterator.hasNext()) {
             Statement statement = iterator.next();
-            
+
             if (containsNonUnicode(statement.getSubject().getURI())) {
                 continue;
             }
@@ -166,7 +166,7 @@ public class DataLoader {
                 continue;
             }
 
-            if(statement.getObject().isResource()) {
+            if (statement.getObject().isResource()) {
                 if (containsNonUnicode(statement.getObject().asResource().getURI())) {
                     continue;
                 }
@@ -179,7 +179,7 @@ public class DataLoader {
     }
 
     private Model loadModel(String fileURI) throws UnsupportedEncodingException, URISyntaxException {
-          Model model = ModelFactory.createDefaultModel();
+        Model model = ModelFactory.createDefaultModel();
 
         RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();

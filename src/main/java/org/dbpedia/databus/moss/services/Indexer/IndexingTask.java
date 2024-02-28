@@ -30,7 +30,7 @@ public class IndexingTask implements Runnable {
             processBuilder.command().add(configFile.getAbsolutePath());
 
             if (todos.size() > 0) {
-                processBuilder.command().add("-r");
+                processBuilder.command().add("-v");
                 processBuilder.command().addAll(todos);
             }
             

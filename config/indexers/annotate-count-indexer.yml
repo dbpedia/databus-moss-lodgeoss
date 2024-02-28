@@ -1,0 +1,18 @@
+version: "1.0"
+indexPath: ./index
+indexMode: INDEX_SPARQL_ENDPOINT
+sparqlEndpoint: http://localhost:2002/sparql
+cleanIndex: true
+maxBufferedDocs: 100000
+commitInterval: 1000
+indexFields:
+  - fieldName: annotatedCount
+    documentVariable: oeoClass
+    type: numeric
+    query: >
+      SELECT ?oeoClass (COUNT(DISTINCT ?mod) as ?annotatedCount) WHERE {
+          GRAPH ?g {
+            ?mod a <https://dataid.dbpedia.org/moss#OEMetadataMod> .
+            ?s <https://saref.etsi.org/core/isAbout> ?oeoClass .
+          }
+      } GROUP BY ?oeoClass

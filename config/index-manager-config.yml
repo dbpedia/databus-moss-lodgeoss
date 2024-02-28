@@ -9,3 +9,6 @@ indexers:
   - configPath: ./indexers/oemetadata-indexer.yml
     mods: 
       - OEMetadataMod
+  - configPath: ./indexers/annotate-count-indexer.yml
+    mods:
+      - OEMetadataMod
