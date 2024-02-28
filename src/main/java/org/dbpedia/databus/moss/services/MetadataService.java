@@ -8,9 +8,9 @@ import org.apache.jena.rdf.model.ResourceFactory;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.riot.RDFParser;
-import org.apache.jena.sparql.sse.builders.BuildException;
 import org.dbpedia.databus.moss.services.Indexer.IndexerManager;
 import org.dbpedia.databus.moss.services.Indexer.IndexerManagerConfig;
+import org.dbpedia.databus.utils.DatabusUtilFunctions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -28,11 +28,9 @@ import org.springframework.http.ResponseEntity;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.io.ByteArrayOutputStream;
-import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.File;
 import java.net.URISyntaxException;
 import java.net.http.HttpResponse;
@@ -42,8 +40,6 @@ import java.net.URLEncoder;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collector;
-import java.util.stream.Collectors;
 
 
     @Service
@@ -142,13 +138,12 @@ import java.util.stream.Collectors;
         String[] resourceSegments = databusIdentifier.split("/");
 
         pathSegments.add("annotations");
-        pathSegments.add(modType);
 
         for (String segment : resourceSegments) {
             pathSegments.add(segment);
         }
 
-        pathSegments.add("annotations.jsonld");
+        pathSegments.add(modType.toLowerCase() + ".jsonld");
 
         return buildURL(baseURLRaw, pathSegments);
     }
@@ -230,7 +225,7 @@ import java.util.stream.Collectors;
     public void createComplexAnnotation(String databusIdentifier, InputStream graphInputStream) {
         String modVersion = "0.0.0";
         AnnotationModMetadata complexAnnotationMod = new AnnotationModMetadata(modVersion, "complex", databusIdentifier, graphInputStream);
-        String fileIdentifier = creatFileIdentifier(this.baseURI, complexAnnotationMod.modType, databusIdentifier);
+        String fileIdentifier = DatabusUtilFunctions.createAnnotationFileIdentifier(this.baseURI, complexAnnotationMod.modType, databusIdentifier);
 
         Model annotationModel = ModelFactory.createDefaultModel();
         annotationModel = getModel(fileIdentifier);

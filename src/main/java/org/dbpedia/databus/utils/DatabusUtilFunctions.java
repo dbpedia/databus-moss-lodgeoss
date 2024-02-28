@@ -107,16 +107,16 @@ public final class DatabusUtilFunctions {
     public static String createAnnotationFileIdentifier(String baseURL, String modType, String databusIdentifier) {
         List<String> pathSegments = new ArrayList<String>();
 
-        databusIdentifier = databusIdentifier.replaceAll("http[s]?://", "");
+        databusIdentifier = databusIdentifier.replaceAll( "http[s]?://", "");
         String[] resourceSegments = databusIdentifier.split("/");
+
         pathSegments.add("annotations");
-        pathSegments.add(modType);
 
         for (String segment : resourceSegments) {
             pathSegments.add(segment);
         }
 
-        pathSegments.add("annotations.jsonld");
+        pathSegments.add(modType.toLowerCase() + ".jsonld");
         return buildURL(baseURL, pathSegments);
     }
 

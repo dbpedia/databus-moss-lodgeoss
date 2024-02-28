@@ -1,0 +1,43 @@
+# Starts everything except the databus
+version: "3.0"
+services:
+  lookup:
+    image: lookup-searcher
+    container_name: moss_lookup
+    ports: 
+      - "2003:8082"
+    volumes:
+      - "../config/search-config.yml:/lookup/config.yml"
+      - "../config/indexers/index:/lookup/index"
+  gstore:
+    image: gstore #dbpedia/gstore:dev
+    container_name: devenv_gstore
+    environment: 
+      STORAGE_USER: "dba"
+      STORAGE_PASS: "everyoneknows"
+      STORAGE_SPARQL_ENDPOINT_URI: http://virtuoso:8890/sparql
+      GSTORE_LOCALHOST_CONTEXT_FALLBACK_URL: http://172.17.0.1
+    ports:
+      - "2001:8080"
+    volumes:
+      - ./data/gstore/git:/gstore/git
+      - ./data/gstore/logs:/gstore/logs
+  virtuoso:
+    image: "openlink/virtuoso-opensource-7:latest"
+    container_name: devenv_virtuoso
+    environment:
+      DBA_PASSWORD: "everyoneknows"
+      SPARQL_UPDATE: "true"
+      DEFAULT_GRAPH: "http://localhost:2000"
+    ports:
+      - "2002:8890"
+    volumes: 
+      - ./data/virtuoso:/database
+    entrypoint: /bin/bash -c "
+        echo 'grant SPARQL_LOAD_SERVICE_DATA to \"SPARQL\";' > /opt/virtuoso-opensource/initdb.d/ini.sql &&
+        echo 'grant SPARQL_SPONGE to \"SPARQL\";' >> /opt/virtuoso-opensource/initdb.d/ini.sql &&
+        echo 'grant SPARQL_SELECT_FED to \"SPARQL\";' > /opt/virtuoso-opensource/initdb.d/ini.sql &&
+        /virtuoso-entrypoint.sh
+      "
+      
+  
