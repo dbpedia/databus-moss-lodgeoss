@@ -26,4 +26,5 @@ webpack.generated.js
 .gitignore
 ~/
 .sdkmanrc
-data
+data/
+index/
