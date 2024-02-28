@@ -18,28 +18,32 @@ import org.springframework.web.client.RestTemplate;
 
 import virtuoso.jena.driver.VirtDataset;
 
-import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.io.ByteArrayOutputStream;
+import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.io.File;
 import java.net.URISyntaxException;
+import java.net.URL;
 import java.net.http.HttpResponse;
 import java.net.http.HttpRequest;
 import java.net.http.HttpClient;
 import java.net.URLEncoder;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 
-
-    @Service
-    public class MetadataService {
+@Service
+public class MetadataService {
 
     private final Logger log = LoggerFactory.getLogger(MetadataService.class);
 
@@ -55,13 +59,13 @@ import java.util.List;
     private GstoreConnector gstoreConnector;
 
     public MetadataService(@Value("${virt.url}") String virtUrl,
-                           @Value("${virt.usr}") String virtUsr,
-                           @Value("${virt.psw}") String virtPsw,
-                           @Value("${file.vol}") String volume,
-                           @Value("${file.configPath}") String configPath,
-                           @Value("${file.indexerJarPath}") String indexerJarPath,
-                           @Value("${uri.base}") String baseURI,
-                           @Value("${uri.gstore}") String gstoreBaseURL) {
+            @Value("${virt.usr}") String virtUsr,
+            @Value("${virt.psw}") String virtPsw,
+            @Value("${file.vol}") String volume,
+            @Value("${file.configPath}") String configPath,
+            @Value("${file.indexerJarPath}") String indexerJarPath,
+            @Value("${uri.base}") String baseURI,
+            @Value("${uri.gstore}") String gstoreBaseURL) {
 
         File file = new File(configPath);
         IndexerManagerConfig indexerConfig = IndexerManagerConfig.fromJson(file);
@@ -86,7 +90,8 @@ import java.util.List;
 
     void updateModelLegacy(String graphName, Model model, Boolean delete) {
         VirtDataset db = new VirtDataset(virtUrl, virtUsr, virtPsw);
-        if (delete && db.containsNamedModel(graphName)) db.removeNamedModel(graphName);
+        if (delete && db.containsNamedModel(graphName))
+            db.removeNamedModel(graphName);
         db.addNamedModel(graphName, model, false);
         db.commit();
         db.close();
@@ -106,11 +111,12 @@ import java.util.List;
         } catch (URISyntaxException e) {
             e.printStackTrace();
         }
-        return  identifier;
+        return identifier;
     }
 
     public String buildURL(String baseURL, String[] pathValues) {
-        // String endpoint = "http://localhost:3002/graph/save?repo=oeo&path=cement/annotation.jsonld";
+        // String endpoint =
+        // "http://localhost:3002/graph/save?repo=oeo&path=cement/annotation.jsonld";
         String identifier = "";
         String path = "graph/save";
         int lastIndex = pathValues.length;
@@ -126,14 +132,13 @@ import java.util.List;
         } catch (URISyntaxException e) {
             e.printStackTrace();
         }
-        return  identifier.replaceAll("%2F", "/");
+        return identifier.replaceAll("%2F", "/");
     }
-
 
     public String creatFileIdentifier(String baseURLRaw, String modType, String databusIdentifier) {
         List<String> pathSegments = new ArrayList<String>();
 
-        databusIdentifier = databusIdentifier.replaceAll( "http[s]?://", "");
+        databusIdentifier = databusIdentifier.replaceAll("http[s]?://", "");
         String[] resourceSegments = databusIdentifier.split("/");
 
         pathSegments.add("annotations");
@@ -151,7 +156,6 @@ import java.util.List;
         String segments = fileIdentifier.replace(this.baseURI + "/", "");
         return this.gStoreBaseURL + "/g/" + segments;
     }
-
 
     public URI createEndpointURL(String scheme, String gStoreBaseURL, String repository, String path) {
         List<String> pathSegments = new ArrayList<String>();
@@ -201,13 +205,13 @@ import java.util.List;
         modData.addSubjectsFromModel(currentModel);
 
         // Add new annotations, hashset will deduplicate
-        for(String tag: annotationRequest.getTags()) {
+        for (String tag : annotationRequest.getTags()) {
             modData.addSubject(tag);
         }
-       
+
         // Convert the data to jena model and save
         try {
-            saveModel(modData.toModel(), createSaveURI(modData.getFileURI()));
+            saveModel(modData.toModel(), createSaveURL(modData.getFileURI()));
             return modData.getId();
         } catch (IOException ioe) {
             ioe.printStackTrace();
@@ -215,32 +219,30 @@ import java.util.List;
         }
     }
 
-
     public RDFAnnotationModData createRDFAnnotation(RDFAnnotationRequest request) {
 
         RDFAnnotationModData modData = new RDFAnnotationModData(this.baseURI, request);
 
         try {
-            saveModel(modData.toModel(), createSaveURI(modData.getFileURI()));
+            saveModel(modData.toModel(), createSaveURL(modData.getFileURI()));
         } catch (IOException ioe) {
             ioe.printStackTrace();
         }
 
         return modData;
-       
+
     }
 
-        
-    public String createSaveURI(String annotationFileURI) {
-        String path = annotationFileURI.replaceAll( baseURI + "/annotations/", "");
-        return this.gStoreBaseURL + "/graph/save?repo=annotations&path=" + path;
+    public URL createSaveURL(String annotationFileURI) throws MalformedURLException {
+        String path = annotationFileURI.replaceAll(baseURI + "/annotations/", "");
+        String uriString = this.gStoreBaseURL + "/graph/save?repo=annotations&path=" + path;
+        return URI.create(uriString).toURL();
     }
 
-    
+    private void saveModel(Model annotationModel, URL saveUrl) throws IOException {
 
-    private void saveModel(Model annotationModel, String gStoreEndpoint) throws IOException {
+        System.out.println("Saving with " + saveUrl.toString());
 
-        System.out.println("Saving with " + gStoreEndpoint);
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         RDFDataMgr.write(outputStream, annotationModel, Lang.JSONLD);
 
@@ -254,12 +256,35 @@ import java.util.List;
         System.out.println("jsonjsonjsonjsonjsonjsonjsonjsonjsonjson");
         System.out.println(jsonString);
         System.out.println("jsonjsonjsonjsonjsonjsonjsonjsonjsonjson");
-        RestTemplate restTemplate = new RestTemplate();
+        //RestTemplate restTemplate = new RestTemplate();
+
+        HttpURLConnection con = (HttpURLConnection) saveUrl.openConnection();
+        con.setRequestMethod("POST");
+        con.setRequestProperty("Accept", "application/ld+json");
+        con.setRequestProperty("Content-Type", "application/ld+json");
+
+        con.setDoOutput(true);
+
+        try (OutputStream os = con.getOutputStream()) {
+            byte[] input = jsonString.getBytes("utf-8");
+            os.write(input, 0, input.length);
+        }
+
+        try (BufferedReader br = new BufferedReader(
+                new InputStreamReader(con.getInputStream(), "utf-8"))) {
+            StringBuilder response = new StringBuilder();
+            String responseLine = null;
+            while ((responseLine = br.readLine()) != null) {
+                response.append(responseLine.trim());
+            }
+            System.out.println(response.toString());
+        }
+
+        /* 
         HttpHeaders headers = new HttpHeaders();
         headers.add("Accept", "application/ld+json");
         headers.add("Content-Type", "application/ld+json");
 
-      
         HttpEntity<String> entity = new HttpEntity<String>(jsonString, headers);
         try {
             URI endpoint = new URI(gStoreEndpoint);
@@ -270,11 +295,11 @@ import java.util.List;
             System.out.println("------------------------------------");
         } catch (Exception e) {
             e.printStackTrace();
-        } 
+        }*/
     }
 
     Model getModel(String fileId) {
-       
+
         String gstoreIdentifier = createGStoreIdentifier(fileId);
         Model model = ModelFactory.createDefaultModel();
 
@@ -291,14 +316,14 @@ import java.util.List;
             System.out.println(serverResponse);
             System.out.println("============= MODEL FROM GSTORE ================");
 
-            if(serverResponse != null) {
+            if (serverResponse != null) {
                 ByteArrayInputStream targetStream = new ByteArrayInputStream(serverResponse.getBytes("UTF-8"));
                 RDFParser.source(targetStream).forceLang(Lang.JSONLD).parse(model);
             }
         } catch (URISyntaxException e) {
             e.printStackTrace();
         } catch (HttpClientErrorException e) {
-            //: Model not found -> return empty model
+            // : Model not found -> return empty model
             return model;
         } catch (RestClientException e) {
             e.printStackTrace();
@@ -310,7 +335,7 @@ import java.util.List;
     }
 
     Model getModel(String fileId, String gStoreId) {
-       
+
         String gstoreIdentifier = gStoreId;
         Model model = ModelFactory.createDefaultModel();
 
@@ -327,14 +352,14 @@ import java.util.List;
             System.out.println(serverResponse);
             System.out.println("============= MODEL FROM GSTORE ================");
 
-            if(serverResponse != null) {
+            if (serverResponse != null) {
                 ByteArrayInputStream targetStream = new ByteArrayInputStream(serverResponse.getBytes("UTF-8"));
                 RDFParser.source(targetStream).forceLang(Lang.JSONLD).parse(model);
             }
         } catch (URISyntaxException e) {
             e.printStackTrace();
         } catch (HttpClientErrorException e) {
-            //: Model not found -> return empty model
+            // : Model not found -> return empty model
             return model;
         } catch (RestClientException e) {
             e.printStackTrace();
@@ -346,25 +371,23 @@ import java.util.List;
     }
 
     public File getFile(String databusIdPath, String result) {
-        File file = new File(baseDir,databusIdPath+"/"+result);
-        if(file.exists()) {
+        File file = new File(baseDir, databusIdPath + "/" + result);
+        if (file.exists()) {
             return file;
         } else {
             return null;
         }
     }
 
-
-
     public String fetchAPIData(String identifier) {
 
-        String uri = String.format("%s/fetch?id=%s&file=api-demo-data.ttl", this.baseURI, URLEncoder.encode(identifier, StandardCharsets.UTF_8));
+        String uri = String.format("%s/fetch?id=%s&file=api-demo-data.ttl", this.baseURI,
+                URLEncoder.encode(identifier, StandardCharsets.UTF_8));
         try {
             HttpClient client = HttpClient.newHttpClient();
 
             HttpRequest req = HttpRequest.newBuilder().uri(
-                    new URI(uri)
-            ).build();
+                    new URI(uri)).build();
 
             HttpResponse<String> response = client.send(req, HttpResponse.BodyHandlers.ofString());
 
