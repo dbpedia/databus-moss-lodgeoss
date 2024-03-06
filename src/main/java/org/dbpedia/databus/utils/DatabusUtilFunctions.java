@@ -110,7 +110,7 @@ public final class DatabusUtilFunctions {
         databusIdentifier = databusIdentifier.replaceAll( "http[s]?://", "");
         String[] resourceSegments = databusIdentifier.split("/");
 
-        pathSegments.add("annotations");
+        // pathSegments.add("annotations");
 
         for (String segment : resourceSegments) {
             pathSegments.add(segment);
