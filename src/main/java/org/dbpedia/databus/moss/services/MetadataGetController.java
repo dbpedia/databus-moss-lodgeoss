@@ -1,15 +1,16 @@
 package org.dbpedia.databus.moss.services;
 
+import java.net.MalformedURLException;
 import java.util.regex.Pattern;
 
 import javax.servlet.http.HttpServletRequest;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.client.RestTemplate;
 
 import com.google.gson.Gson;
 
@@ -38,7 +39,12 @@ public class MetadataGetController {
         String path = request.getRequestURI().split(request.getContextPath() + "/" + repo + "/")[1];
 
         RestTemplate restTemplate = new RestTemplate();
-        String requestURL = this.metadataService.getGstoreURL(repo, path);
+        String requestURL = "";
+        try {
+            requestURL = this.metadataService.createSaveURL("/" + path).toString();
+        } catch (MalformedURLException malformedURLException) {
+            malformedURLException.printStackTrace();
+        }
 
         @SuppressWarnings("null")
         ResponseEntity<String> response = restTemplate.getForEntity(requestURL, String.class);
