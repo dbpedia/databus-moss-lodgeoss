@@ -96,12 +96,12 @@ public class MetadataPostController {
         for (String databusIdentifier : annotationMappings.keySet()) {
             String metadataFile = annotationMappings.get(databusIdentifier);
             try {
-                RDFAnnotationModData modData = parseToAnnotationModData(databusIdentifier, metadataFile);
+                parseToAnnotationModData(databusIdentifier, metadataFile);
             } catch (MalformedURLException malformedURLException) {
                 System.err.println(malformedURLException);
             } catch (IOException ioException) {
                 System.err.println(ioException);
-            } catch (RiotException riotException) {
+            } catch (RiotException riotException) {https://www.youtube.com/watch?v=-Wd_bVNy2KE
                 System.err.println(riotException);
                 failedDatabusIds.add(databusIdentifier);
             }
@@ -112,7 +112,7 @@ public class MetadataPostController {
         System.out.println("Failed " + failedDatabusIds.size());
     }
 
-    public RDFAnnotationModData parseToAnnotationModData(String databusIdentifier, String metadataFile) throws MalformedURLException, IOException, RiotException {
+    public void parseToAnnotationModData(String databusIdentifier, String metadataFile) throws MalformedURLException, IOException, RiotException {
         URL metadataURL = new URL(metadataFile);
         String jsonString = IOUtils.toString(metadataURL, Charset.forName("UTF8"));
         System.out.println(jsonString);
@@ -122,34 +122,12 @@ public class MetadataPostController {
         RDFDataMgr.read(annotationModel, annotationGraphInputStream, Lang.JSONLD);
         RDFAnnotationRequest request = new RDFAnnotationRequest(
                 databusIdentifier,
-                "complex",
+                "OEMetadataMod",
                 annotationModel,
                 "1.0.0");
 
-        // this.metadataService.getIndexerManager().updateIndices(modData.getModType(), modData.getModURI());
-        return  metadataService.createRDFAnnotation(request);
+        RDFAnnotationModData modData = metadataService.createRDFAnnotation(request);
+        this.metadataService.getIndexerManager().updateIndices(modData.getModType(), modData.getModURI());
     }
 
-    // @RequestMapping("/annotations/{databus}/{user}/{group}/{file}")
-    // public ResponseEntity<Resource> getAnnotations(@PathVariable(value="databus")
-    // String databus,
-    // @PathVariable(value = "user") String user,
-    // @PathVariable(value = "group") String group,
-    // @PathVariable(value = "file") String file) throws IOException {
-
-    // String suffix = "activity.ttl";
-    // String volumePath = String.format("./volume/%s/%s/%s/%s/%s", databus, user,
-    // group, file, suffix);
-    // String p = "./volume/databus.testing.org/me/club/cement/activity.ttl";
-    // File doc = new File(p);
-
-    // InputStreamResource resource = new InputStreamResource(new
-    // FileInputStream(doc));
-    // HttpHeaders header = new HttpHeaders();
-
-    // return ResponseEntity.ok()
-    // .headers(header)
-    // .contentType(MediaType.TEXT_PLAIN)
-    // .body(resource);
-    // }
 }

@@ -2,13 +2,13 @@
 version: "3.0"
 services:
   lookup:
-    image: lookup-searcher
+    image: dbpedia/lookup:dev
     container_name: moss_lookup
     ports: 
       - "2003:8082"
     volumes:
-      - "../config/search-config.yml:/lookup/config.yml"
-      - "../index:/lookup/index"
+      - "../config/lookup-config.yml:/resources/config.yml"
+      - "./index:/index"
   gstore:
     image: dbpedia/gstore:dev
     container_name: devenv_gstore

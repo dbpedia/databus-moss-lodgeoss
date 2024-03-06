@@ -73,7 +73,8 @@ public class ModIndexer {
         this.todos.clear();
 
         String configPath = configRootPath + "/" + config.getConfigPath();
-        IndexingTask task = new IndexingTask(configPath, resources, indexerJarPath);
+        String indexEndpoint = "http://localhost:2003/api/index/run";
+        IndexingTask task = new IndexingTask(configPath, indexEndpoint, resources, indexerJarPath);
 
         if(executor != null) {
             this.indexingFuture = executor.submit(task);

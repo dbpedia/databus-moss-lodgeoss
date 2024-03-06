@@ -1,10 +1,6 @@
 version: "1.0"
-indexPath: ./index
 indexMode: INDEX_SPARQL_ENDPOINT
-sparqlEndpoint: http://localhost:2002/sparql
-cleanIndex: true
-maxBufferedDocs: 100000
-commitInterval: 1000
+sparqlEndpoint: http://virtuoso:8890/sparql
 indexFields:
   - fieldName: annotatedCount
     documentVariable: oeoClass
