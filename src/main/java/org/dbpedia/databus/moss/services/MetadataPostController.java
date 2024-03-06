@@ -54,7 +54,7 @@ public class MetadataPostController {
         return annotationRequest;
     }
 
-    @RequestMapping(value = { "/annotate/{modURI}" })
+    @RequestMapping(value = { "/annotate/", "/annotate/{modURI}" })
     public SimpleAnnotationRequest complexAnnotate(@RequestParam String databusURI,
             @PathVariable(required = false) String modURI,
             @RequestParam String modType,
@@ -84,15 +84,8 @@ public class MetadataPostController {
     }
 
     @RequestMapping(value = { "/save" })
-    public void save() {
-        //TODO: what kind of data gets passed to this route?
-        /*
-         * 1. parse jsonld to json string
-         * 2. create empty jena model
-         * 3. read json string into jena model
-         * 4. determine path for gstore
-         * 5. post request to gstore
-         */
+    public void save(@RequestBody String json) {
+        this.metadataService.saveMod(json);
     }
 
     @RequestMapping(value = { "/fetch" })
