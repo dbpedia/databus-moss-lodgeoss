@@ -139,7 +139,7 @@ public class MetadataService {
 
     public URL createSaveURL(String annotationFileURI) throws MalformedURLException {
         String path = annotationFileURI.replaceAll(baseURI, "");
-        String uriString = this.gStoreBaseURL + "/g" + path;
+        String uriString = this.gStoreBaseURL + path;
         return URI.create(uriString).toURL();
     }
     
