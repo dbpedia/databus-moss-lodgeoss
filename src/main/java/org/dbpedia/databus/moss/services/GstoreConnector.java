@@ -24,6 +24,32 @@ public class GstoreConnector {
         this.baseURL = baseURL;
     }
 
+    public Model read(String targetURI) throws URISyntaxException, UnsupportedEncodingException {
+
+        // String targetURI = this.baseURL + "/graph/read?repo=" + repo + "&path=" + path;
+
+        Model model = ModelFactory.createDefaultModel();
+
+        RestTemplate restTemplate = new RestTemplate();
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Accept", "application/ld+json");
+        headers.add("Content-Type", "application/ld+json");
+
+        URI gstoreURI = new URI(targetURI);
+        ResponseEntity<String> response = restTemplate.getForEntity(gstoreURI, String.class);
+        String serverResponse = response.getBody();
+        System.out.println("============= MODEL FROM GSTORE ================");
+        System.out.println(serverResponse);
+        System.out.println("============= MODEL FROM GSTORE ================");
+
+        if (serverResponse != null) {
+            ByteArrayInputStream targetStream = new ByteArrayInputStream(serverResponse.getBytes("UTF-8"));
+            RDFParser.source(targetStream).forceLang(Lang.JSONLD).parse(model);
+        }
+
+        return model;
+    }
+
     public Model read(String repo, String path) throws URISyntaxException, UnsupportedEncodingException {
 
         String targetURI = this.baseURL + "/graph/read?repo=" + repo + "&path=" + path;
