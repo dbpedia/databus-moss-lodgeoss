@@ -1,6 +1,4 @@
 package org.dbpedia.databus.moss.services;
-
-import java.net.MalformedURLException;
 import java.util.regex.Pattern;
 
 import javax.servlet.http.HttpServletRequest;

@@ -11,7 +11,6 @@ import org.dbpedia.databus.moss.services.Indexer.IndexerManager;
 import org.dbpedia.databus.moss.services.Indexer.IndexerManagerConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -38,8 +37,6 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.util.List;
 
-import com.google.gson.Gson;
-
 @Service
 public class MetadataService {
 
@@ -51,8 +48,6 @@ public class MetadataService {
     private final File baseDir;
     private final String baseURI;
     private final String gStoreBaseURL;
-    private final String regexResourcePrefix = "http[s]?://";
-    @SuppressWarnings("unused")
     private IndexerManager indexerManager;
     private GstoreConnector gstoreConnector;
 

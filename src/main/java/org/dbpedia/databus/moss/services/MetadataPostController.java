@@ -10,7 +10,6 @@ import java.util.HashMap;
 import java.util.regex.Pattern;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -54,9 +53,9 @@ public class MetadataPostController {
         return annotationRequest;
     }
 
-    @RequestMapping(value = { "/annotate/", "/annotate/{modURI}" })
+    @RequestMapping(value = { "/annotate/", "/annotate" })
     public SimpleAnnotationRequest complexAnnotate(@RequestParam String databusURI,
-            @PathVariable(required = false) String modURI,
+            @RequestParam(required = false) String modURI,
             @RequestParam String modType,
             @RequestParam String modVersion,
             @RequestParam MultipartFile annotationGraph) {
