@@ -32,19 +32,11 @@ public class MetadataGetController {
 
     // http://localhost:8080/annotations/SimpleAnnotationMod/databus.testing.org/cement/annotations.jsonld
     // /annotations/{databus}/{user}/{group}/{file}
-    @GetMapping("/annotations/**")
+    @GetMapping("/g/**")
     public ResponseEntity<String> getGraph(HttpServletRequest request) {
 
-        String repo = "annotations";
-        String path = request.getRequestURI().split(request.getContextPath() + "/" + repo + "/")[1];
-
         RestTemplate restTemplate = new RestTemplate();
-        String requestURL = "";
-        try {
-            requestURL = this.metadataService.createSaveURL("/" + path).toString();
-        } catch (MalformedURLException malformedURLException) {
-            malformedURLException.printStackTrace();
-        }
+        String requestURL = this.metadataService.getGStoreBaseURL() + request.getRequestURI();
 
         @SuppressWarnings("null")
         ResponseEntity<String> response = restTemplate.getForEntity(requestURL, String.class);

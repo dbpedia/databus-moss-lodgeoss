@@ -147,6 +147,10 @@ public class MetadataService {
         String uriString = this.gStoreBaseURL + "/g" + path;
         return URI.create(uriString).toURL();
     }
+    
+    public String getGStoreBaseURL() {
+        return this.gStoreBaseURL;
+    }
 
     private void saveModel(Model annotationModel, URL saveUrl) throws IOException {
 
