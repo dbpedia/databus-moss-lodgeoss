@@ -53,7 +53,7 @@ public class MetadataPostController {
         return annotationRequest;
     }
 
-    @RequestMapping(value = { "/annotate/", "/annotate" })
+    @RequestMapping(value = { "/annotate" })
     public SimpleAnnotationRequest complexAnnotate(@RequestParam String databusURI,
             @RequestParam(required = false) String modURI,
             @RequestParam String modType,
