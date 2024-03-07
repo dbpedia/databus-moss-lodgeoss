@@ -32,7 +32,7 @@ public class IndexingTask implements Runnable {
         this.indexEndpoint = indexEndpoint;
     }
 
-    @SuppressWarnings("deprecation")
+    @SuppressWarnings({ "deprecation", "null" })
     @Override
     public void run() {
 

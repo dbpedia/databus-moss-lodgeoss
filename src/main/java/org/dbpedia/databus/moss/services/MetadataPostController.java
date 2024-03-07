@@ -3,6 +3,8 @@ package org.dbpedia.databus.moss.services;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
@@ -41,6 +43,11 @@ public class MetadataPostController {
         this.gson = gson;
     }
 
+    /**
+     * TODO: Remove this and replace with client-side call to /annotate
+     * @param json
+     * @return
+     */
     @RequestMapping(value = { "/annotate/simple" })
     public SimpleAnnotationRequest annotate(@RequestBody String json) {
 
@@ -53,6 +60,15 @@ public class MetadataPostController {
         return annotationRequest;
     }
 
+    /**
+     * The main API route to annotate Databus resources
+     * @param databusURI
+     * @param modURI
+     * @param modType
+     * @param modVersion
+     * @param annotationGraph
+     * @return
+     */
     @RequestMapping(value = { "/annotate" })
     public SimpleAnnotationRequest complexAnnotate(@RequestParam String databusURI,
             @RequestParam(required = false) String modURI,
@@ -82,6 +98,10 @@ public class MetadataPostController {
         return null;
     }
 
+    /**
+     * 
+     * @param json
+     */
     @RequestMapping(value = { "/save" })
     public void save(@RequestBody String json) {
         this.metadataService.saveMod(json);
@@ -101,9 +121,11 @@ public class MetadataPostController {
                 System.err.println(malformedURLException);
             } catch (IOException ioException) {
                 System.err.println(ioException);
-            } catch (RiotException riotException) {https://www.youtube.com/watch?v=-Wd_bVNy2KE
+            } catch (RiotException riotException) {
                 System.err.println(riotException);
                 failedDatabusIds.add(databusIdentifier);
+            } catch (URISyntaxException e) {
+                System.err.println(e);
             }
         }
 
@@ -112,8 +134,8 @@ public class MetadataPostController {
         System.out.println("Failed " + failedDatabusIds.size());
     }
 
-    public void parseToAnnotationModData(String databusIdentifier, String metadataFile) throws MalformedURLException, IOException, RiotException {
-        URL metadataURL = new URL(metadataFile);
+    public void parseToAnnotationModData(String databusIdentifier, String metadataFile) throws MalformedURLException, IOException, RiotException, URISyntaxException {
+        URL metadataURL = new URI(metadataFile).toURL();
         String jsonString = IOUtils.toString(metadataURL, Charset.forName("UTF8"));
         System.out.println(jsonString);
         Model annotationModel = ModelFactory.createDefaultModel();

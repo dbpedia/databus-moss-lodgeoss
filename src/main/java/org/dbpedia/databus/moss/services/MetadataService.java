@@ -6,7 +6,6 @@ import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFDataMgr;
-import org.apache.jena.riot.RDFFormat;
 import org.dbpedia.databus.moss.services.Indexer.IndexerManager;
 import org.dbpedia.databus.moss.services.Indexer.IndexerManagerConfig;
 import org.slf4j.Logger;
@@ -154,12 +153,14 @@ public class MetadataService {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         RDFDataMgr.write(outputStream, annotationModel, Lang.JSONLD);
 
+        /** 
         System.out.println("#########################################");
         RDFDataMgr.write(System.out, annotationModel, RDFFormat.JSONLD_COMPACT_PRETTY);
         System.out.println("+++++++++++++++++++++++++++++++++++++++++");
         RDFDataMgr.write(System.out, annotationModel, Lang.TURTLE);
         System.out.println("#########################################");
 
+        */
         String jsonString = outputStream.toString("UTF-8");
         System.out.println("jsonjsonjsonjsonjsonjsonjsonjsonjsonjson");
         System.out.println(jsonString);
