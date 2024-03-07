@@ -49,6 +49,29 @@
             "@id": "dbo:endDateTime",
             "@type": "xsd:dateTime"
         },
+        "startedAtTime": {
+            "@id": "prov:startedAtTime",
+            "@type": "xsd:dateTime"
+        },
+        "used": {
+            "@id": "prov:used",
+            "@type": "@id"
+        },
+        "subClassOf": {
+            "@id": "rdfs:subClassOf",
+            "@type": "@id"
+        },
+        "version": {
+            "@id": "mod:version"
+        },
+        "endedAtTime": {
+            "@id": "prov:endedAtTime",
+            "@type": "xsd:dateTime"
+        },
+        "generated": {
+            "@id": "prov:generated",
+            "@type": "@id"
+        },
         "fields": {
             "@id": "csvw:column",
             "@type": "@id"
