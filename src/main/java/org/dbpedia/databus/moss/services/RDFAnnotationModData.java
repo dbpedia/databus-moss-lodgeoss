@@ -1,9 +1,10 @@
 package org.dbpedia.databus.moss.services;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
+import java.util.Calendar;
 import java.util.Map;
 
+import org.apache.jena.datatypes.xsd.XSDDateTime;
+import org.apache.jena.rdf.model.Literal;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Resource;
@@ -24,7 +25,7 @@ public class RDFAnnotationModData {
     private Model annotationModel;
     private String modVersion;
     private String fileURI;
-    private String time;
+    private Literal startedAtTime;
     private String modURI;
 
     String modFragment = "#mod";
@@ -36,7 +37,8 @@ public class RDFAnnotationModData {
         this.modVersion = request.getModVersion();
         this.fileURI = DatabusUtilFunctions.createAnnotationFileURI(baseURI, this.modType,
                 this.databusURI);
-        this.time = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").format(LocalDateTime.now());
+
+        this.startedAtTime = ResourceFactory.createTypedLiteral( new XSDDateTime(Calendar.getInstance()));
         this.nameSpaces = Map.of("dc", "http://purl.org/dc/terms/",
                 "prov", "http://www.w3.org/ns/prov#",
                 "moss", "https://dataid.dbpedia.org/moss#",
@@ -67,12 +69,12 @@ public class RDFAnnotationModData {
 
         model.add(modResource, RDF.type, modTypeResource);
         model.add(modResource, ResourceFactory.createProperty(provNamespace, "used"), usedResource);
-        model.add(modResource, ResourceFactory.createProperty(provNamespace, "startedAtTime"), this.time);
+        model.add(modResource, ResourceFactory.createProperty(provNamespace, "startedAtTime"), startedAtTime);
         model.add(modResource, ResourceFactory.createProperty(provNamespace, "generated"), documentResource);
         model.add(modTypeResource, RDFS.subClassOf, ResourceFactory.createResource(modNamespace + "DatabusMod"));
         model.add(modResource, ResourceFactory.createProperty(modNamespace, "version"), this.modVersion);
 
-        String endedAtTime = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").format(LocalDateTime.now());
+        Literal endedAtTime = ResourceFactory.createTypedLiteral(new XSDDateTime(Calendar.getInstance()));
         model.add(modResource, ResourceFactory.createProperty(provNamespace, "endedAtTime"), endedAtTime);
 
         return model;

@@ -1,11 +1,12 @@
 package org.dbpedia.databus.moss.services;
 
 import java.io.InputStream;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
+import java.util.Calendar;
 import java.util.HashSet;
 import java.util.Map;
 
+import org.apache.jena.datatypes.xsd.XSDDateTime;
+import org.apache.jena.rdf.model.Literal;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Property;
@@ -29,7 +30,7 @@ public class SimpleAnnotationModData {
     public String version;
     public String modType;
     public String used;
-    private String time;
+    private XSDDateTime time;
     private HashSet<String> subjects;
 
 
@@ -40,7 +41,11 @@ public class SimpleAnnotationModData {
         this.version = "1.0.0";
         this.modType = "SimpleAnnotationMod";
         this.used = databusResourceUri;
-        this.time = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").format(LocalDateTime.now());
+
+        Calendar calendar = Calendar.getInstance();
+        this.time = new XSDDateTime(calendar);
+     
+ 
         this.nameSpaces = Map.of("dc", "http://purl.org/dc/terms/",
                                 "prov", "http://www.w3.org/ns/prov#",
                                 "moss", "https://dataid.dbpedia.org/moss#",
@@ -90,6 +95,7 @@ public class SimpleAnnotationModData {
         Resource modResource = ResourceFactory.createResource(this.fileURI + modFragment);
         Resource modTypeResource = ResourceFactory.createResource("https://dataid.dbpedia.org/moss#" + this.modType);
         Resource usedResource = ResourceFactory.createResource(this.used);
+        Literal timeLiteral = ResourceFactory.createTypedLiteral(this.time);
 
         String provNamespace = this.nameSpaces.get("prov");
         String modNamespace = this.nameSpaces.get("mod");
@@ -98,13 +104,11 @@ public class SimpleAnnotationModData {
 
         model.add(modResource, RDF.type, modTypeResource);
         model.add(modResource, ResourceFactory.createProperty(provNamespace, "used"), usedResource);
-        model.add(modResource, ResourceFactory.createProperty(provNamespace, "startedAtTime"), this.time);
+        model.add(modResource, ResourceFactory.createProperty(provNamespace, "startedAtTime"), timeLiteral);
         model.add(modResource, ResourceFactory.createProperty(provNamespace, "generated"), documentResource);
         model.add(modTypeResource, RDFS.subClassOf, ResourceFactory.createResource(modNamespace + "DatabusMod"));
         model.add(modResource, ResourceFactory.createProperty(modNamespace, "version"), this.version);
-
-        String endedAtTime = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").format(LocalDateTime.now());
-        model.add(modResource, ResourceFactory.createProperty(provNamespace, "endedAtTime"), endedAtTime);
+        model.add(modResource, ResourceFactory.createProperty(provNamespace, "endedAtTime"), timeLiteral);
 
         for(String subject : this.subjects) {
             model.add(usedResource, DC.subject, ResourceFactory.createResource(subject));
