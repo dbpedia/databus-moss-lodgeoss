@@ -2,12 +2,12 @@ version: "1.0"
 indexPath: ./index
 maxBufferedDocs: 1000000
 logInterval: 10000
-exactMatchBoost: 10
+exactMatchBoost: 6
 prefixMatchBoost: 5
 fuzzyMatchBoost: 2
 fuzzyEditDistance: 2
 fuzzyPrefixLength: 2
-boostFormula: 1+0.1*ln(annotatedCount+1)
+boostFormula: 1 + 0.1 * ln(annotatedCount + 1)
 maxResults: 1000
 format: JSON
 minScore: 0.1
@@ -26,6 +26,7 @@ lookupFields:
     queryByDefault: true
   - name: annotatedCount
     type: numeric
+    weight: 1
   - name: annotation
     type: uri
     tokenize: false

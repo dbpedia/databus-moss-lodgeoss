@@ -1,5 +1,4 @@
 version: "1.0"
-# indexPath: C:\Users\janfo\Documents\Work\databus-moss\indices\simple
 indexMode: INDEX_SPARQL_ENDPOINT
 sparqlEndpoint: http://virtuoso:8890/sparql
 indexFields:
