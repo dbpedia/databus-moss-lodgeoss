@@ -2,10 +2,17 @@ package org.dbpedia.databus.utils;
 
 import org.apache.jena.riot.system.StreamRDF;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.io.Writer;
+import java.net.HttpURLConnection;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.time.LocalDate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -68,5 +75,24 @@ public final class MossUtilityFunctions {
             return true;
         }
         return false;
+    }
+
+
+    public static String fetchJSON(String urlString) throws IOException, URISyntaxException {
+        StringBuilder result = new StringBuilder();
+        URL url = new URI(urlString).toURL();
+        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+        connection.setRequestMethod("GET");
+
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                result.append(line);
+            }
+        } finally {
+            connection.disconnect();
+        }
+
+        return result.toString();
     }
 }

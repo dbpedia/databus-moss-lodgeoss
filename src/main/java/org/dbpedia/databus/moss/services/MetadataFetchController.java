@@ -20,7 +20,6 @@ import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.riot.RiotException;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 
-
 @RequestMapping("api")
 @ConditionalOnProperty(prefix = "debug.fetch", name = "enabled")
 @RestController

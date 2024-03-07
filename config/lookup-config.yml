@@ -24,6 +24,9 @@ lookupFields:
     highlight: true
     tokenize: true
     queryByDefault: true
+    allowPartialMatch: true
+    required: false
+    exact: false
   - name: annotatedCount
     type: numeric
     weight: 1

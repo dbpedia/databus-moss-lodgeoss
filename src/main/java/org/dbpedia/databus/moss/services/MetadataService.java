@@ -1,13 +1,19 @@
 package org.dbpedia.databus.moss.services;
 
+import org.apache.jena.query.DatasetFactory;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.riot.JsonLDWriteContext;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFDataMgr;
+import org.apache.jena.riot.RDFFormat;
+import org.apache.jena.riot.writer.JsonLDWriter;
+import org.apache.jena.sparql.core.DatasetGraph;
 import org.dbpedia.databus.moss.services.Indexer.IndexerManager;
 import org.dbpedia.databus.moss.services.Indexer.IndexerManagerConfig;
+import org.dbpedia.databus.utils.MossUtilityFunctions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -49,6 +55,9 @@ public class MetadataService {
     private final String gStoreBaseURL;
     private IndexerManager indexerManager;
     private GstoreConnector gstoreConnector;
+    private String contextURL;
+
+    private String contextJson;
 
     public MetadataService(@Value("${virt.url}") String virtUrl,
             @Value("${virt.usr}") String virtUsr,
@@ -57,6 +66,7 @@ public class MetadataService {
             @Value("${file.configPath}") String configPath,
             @Value("${file.indexerJarPath}") String indexerJarPath,
             @Value("${uri.base}") String baseURI,
+            @Value("${uri.context}") String contextURL,
             @Value("${uri.gstore}") String gstoreBaseURL
             ) {
 
@@ -73,7 +83,17 @@ public class MetadataService {
         this.baseDir = new File(volume);
         this.baseURI = baseURI;
         this.gStoreBaseURL = gstoreBaseURL;
+        this.contextURL = contextURL;
+
+        try{
+            this.contextJson = MossUtilityFunctions.fetchJSON(contextURL);
+        } catch(Exception e) {
+            System.err.println("Failed to fetch context");
+            System.err.println(e);
+        }
     }
+
+    
 
     @Override
     protected void finalize() throws Throwable {
@@ -151,7 +171,16 @@ public class MetadataService {
         System.out.println("Saving with " + saveUrl.toString());
 
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        RDFDataMgr.write(outputStream, annotationModel, Lang.JSONLD);
+
+        final JsonLDWriteContext ctx = new JsonLDWriteContext();
+
+        ctx.setJsonLDContext(this.contextJson);
+        ctx.setJsonLDContextSubstitution("\"" + this.contextURL + "\"");
+
+        DatasetGraph datasetGraph = DatasetFactory.create(annotationModel).asDatasetGraph(); 
+        JsonLDWriter writer = new JsonLDWriter(RDFFormat.JSONLD_COMPACT_PRETTY);
+        writer.write(outputStream, datasetGraph, null, null, ctx);
+
 
         /** 
         System.out.println("#########################################");

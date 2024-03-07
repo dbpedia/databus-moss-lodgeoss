@@ -26,3 +26,14 @@ indexFields:
           }
           #VALUES#
       }
+  - fieldName: modType
+    documentVariable: mod
+    type: uri
+    query: >
+      SELECT DISTINCT ?mod ?modType WHERE {
+          GRAPH ?g {
+            ?mod a <https://dataid.dbpedia.org/moss#OEMetadataMod> .
+            ?mod a ?modType .
+          }
+          #VALUES#
+      }
