@@ -22,6 +22,7 @@ drivers/
 error-screenshots/
 webpack.generated.js
 
+env.properties
 .gitignore
 ~/
 .sdkmanrc
