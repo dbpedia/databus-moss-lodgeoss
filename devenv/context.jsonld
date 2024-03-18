@@ -72,6 +72,11 @@
             "@id": "prov:generated",
             "@type": "@id"
         },
+        "wasGeneratedBy": {
+            "@id": "null",
+            "@container: "@set",
+            "_inverseOf": "generated"
+        }
         "fields": {
             "@id": "csvw:column",
             "@type": "@id"
