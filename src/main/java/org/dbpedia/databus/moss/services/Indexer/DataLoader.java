@@ -45,10 +45,10 @@ public class DataLoader {
     private ModIndexer indexer;
 
     public DataLoader(DataLoaderConfig config, GstoreConnector gstoreConnector,
-            String configRootPath, String indexerJarPath) {
+            String configRootPath, String lookupBaseURL) {
         this.gstoreConnector = gstoreConnector;
         this.collectionURI = config.getCollectionURI();
-        this.indexer = new ModIndexer(config.getIndexer(), configRootPath, indexerJarPath);
+        this.indexer = new ModIndexer(config.getIndexer(), configRootPath, lookupBaseURL);
     }
 
     private String[] loadCollectionFileURIs() throws URISyntaxException {

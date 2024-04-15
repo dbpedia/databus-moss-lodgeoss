@@ -27,8 +27,8 @@ public class IndexerManager {
     private ScheduledExecutorService scheduler;
 
 
-    public IndexerManager(String configRootPath, String indexerJarPath, IndexerManagerConfig config,
-        GstoreConnector gstoreConnector) {
+    public IndexerManager(String configRootPath, IndexerManagerConfig config,
+        GstoreConnector gstoreConnector, String lookupBaseURL) {
 
         this.indexers = new ArrayList<ModIndexer>();
         this.indexerMappings = new HashMap<String, List<ModIndexer>>();
@@ -39,14 +39,14 @@ public class IndexerManager {
 
         for(DataLoaderConfig loaderConfig : config.getLoaders()) {
             DataLoader loader = new DataLoader(loaderConfig, gstoreConnector, 
-                configRootPath, indexerJarPath);
+                configRootPath, lookupBaseURL);
                 
             loader.load();
         }
 
         for(ModIndexerConfig indexerConfig : config.getIndexers()) {
 
-            ModIndexer modIndexer = new ModIndexer(indexerConfig, configRootPath, indexerJarPath);
+            ModIndexer modIndexer = new ModIndexer(indexerConfig, configRootPath, lookupBaseURL);
 
             this.indexers.add(modIndexer);
             System.out.println("Created indexer with id " + modIndexer.getId());

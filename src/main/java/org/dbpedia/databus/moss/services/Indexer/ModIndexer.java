@@ -16,15 +16,15 @@ public class ModIndexer {
     @SuppressWarnings("rawtypes")
     private Future indexingFuture;
     private String configRootPath;
-    private String indexerJarPath;
+    private String lookupBaseURL;
     // private final int fixedPoolSize = 1;
 
-    public ModIndexer(ModIndexerConfig config, String configRootPath, String indexerJarPath) {
+    public ModIndexer(ModIndexerConfig config, String configRootPath, String lookupBaseURL) {
         this.config = config;
         this.configRootPath = configRootPath;
-        this.indexerJarPath = indexerJarPath;
         this.todos = new HashSet<String>();
         this.id = UUID.randomUUID().toString();
+        this.lookupBaseURL = lookupBaseURL;
         // this.worker = Executors.newFixedThreadPool(fixedPoolSize);
     }
 
@@ -73,8 +73,9 @@ public class ModIndexer {
         this.todos.clear();
 
         String configPath = configRootPath + "/" + config.getConfigPath();
-        String indexEndpoint = "http://localhost:2003/api/index/run";
-        IndexingTask task = new IndexingTask(configPath, indexEndpoint, resources, indexerJarPath);
+
+        String indexEndpoint = lookupBaseURL + "/api/index/run";
+        IndexingTask task = new IndexingTask(configPath, indexEndpoint, resources);
 
         if(executor != null) {
             this.indexingFuture = executor.submit(task);

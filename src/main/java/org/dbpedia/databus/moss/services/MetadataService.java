@@ -64,11 +64,12 @@ public class MetadataService {
             @Value("${virt.psw}") String virtPsw,
             @Value("${file.vol}") String volume,
             @Value("${file.configPath}") String configPath,
-            @Value("${file.indexerJarPath}") String indexerJarPath,
             @Value("${uri.base}") String baseURI,
             @Value("${uri.context}") String contextURL,
-            @Value("${uri.gstore}") String gstoreBaseURL
-            ) {
+            @Value("${uri.gstore}") String gstoreBaseURL,
+            @Value("${uri.lookup}") String lookupBaseURL
+
+    ) {
 
         File file = new File(configPath);
         IndexerManagerConfig indexerConfig = IndexerManagerConfig.fromJson(file);
@@ -76,7 +77,8 @@ public class MetadataService {
         this.gstoreConnector = new GstoreConnector(gstoreBaseURL);
 
         String configRootPath = file.getParentFile().getAbsolutePath();
-        this.indexerManager = new IndexerManager(configRootPath, indexerJarPath, indexerConfig, gstoreConnector);
+        this.indexerManager = new IndexerManager(configRootPath, indexerConfig, gstoreConnector,
+                lookupBaseURL);
         this.virtUrl = virtUrl;
         this.virtUsr = virtUsr;
         this.virtPsw = virtPsw;
@@ -85,15 +87,13 @@ public class MetadataService {
         this.gStoreBaseURL = gstoreBaseURL;
         this.contextURL = contextURL;
 
-        try{
+        try {
             this.contextJson = MossUtilityFunctions.fetchJSON(contextURL);
-        } catch(Exception e) {
+        } catch (Exception e) {
             System.err.println("Failed to fetch context");
             System.err.println(e);
         }
     }
-
-    
 
     @Override
     protected void finalize() throws Throwable {
@@ -143,7 +143,8 @@ public class MetadataService {
     public RDFAnnotationModData createRDFAnnotation(RDFAnnotationRequest request) {
 
         RDFAnnotationModData modData = new RDFAnnotationModData(this.baseURI, request);
-        //FIXME: if modPath also required for model creation -> pass it into the RDFAnnotationModData constructor
+        // FIXME: if modPath also required for model creation -> pass it into the
+        // RDFAnnotationModData constructor
         String modURI = request.getModPath();
         String saveURLRAW = modURI != null ? modURI : modData.getFileURI();
 
@@ -161,7 +162,7 @@ public class MetadataService {
         String uriString = this.gStoreBaseURL + path;
         return URI.create(uriString).toURL();
     }
-    
+
     public String getGStoreBaseURL() {
         return this.gStoreBaseURL;
     }
@@ -177,19 +178,19 @@ public class MetadataService {
         ctx.setJsonLDContext(this.contextJson);
         ctx.setJsonLDContextSubstitution("\"" + this.contextURL + "\"");
 
-        DatasetGraph datasetGraph = DatasetFactory.create(annotationModel).asDatasetGraph(); 
+        DatasetGraph datasetGraph = DatasetFactory.create(annotationModel).asDatasetGraph();
         JsonLDWriter writer = new JsonLDWriter(RDFFormat.JSONLD_COMPACT_PRETTY);
         writer.write(outputStream, datasetGraph, null, null, ctx);
 
-
-        /** 
-        System.out.println("#########################################");
-        RDFDataMgr.write(System.out, annotationModel, RDFFormat.JSONLD_COMPACT_PRETTY);
-        System.out.println("+++++++++++++++++++++++++++++++++++++++++");
-        RDFDataMgr.write(System.out, annotationModel, Lang.TURTLE);
-        System.out.println("#########################################");
-
-        */
+        /**
+         * System.out.println("#########################################");
+         * RDFDataMgr.write(System.out, annotationModel,
+         * RDFFormat.JSONLD_COMPACT_PRETTY);
+         * System.out.println("+++++++++++++++++++++++++++++++++++++++++");
+         * RDFDataMgr.write(System.out, annotationModel, Lang.TURTLE);
+         * System.out.println("#########################################");
+         * 
+         */
         String jsonString = outputStream.toString("UTF-8");
         System.out.println("jsonjsonjsonjsonjsonjsonjsonjsonjsonjson");
         System.out.println(jsonString);
@@ -234,7 +235,6 @@ public class MetadataService {
             ioException.printStackTrace();
         }
     }
-
 
     Model getModel(String fileId) {
 

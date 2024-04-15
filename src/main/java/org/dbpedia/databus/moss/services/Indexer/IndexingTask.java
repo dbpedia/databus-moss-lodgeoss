@@ -25,9 +25,8 @@ public class IndexingTask implements Runnable {
     String indexerJarPath;
     String indexEndpoint;
 
-    public IndexingTask(String configPath, String indexEndpoint, List<String> todos, String indexerJarPath) {
+    public IndexingTask(String configPath, String indexEndpoint, List<String> todos) {
         this.todos = todos;
-        this.indexerJarPath = indexerJarPath;
         this.configPath = configPath;
         this.indexEndpoint = indexEndpoint;
     }
