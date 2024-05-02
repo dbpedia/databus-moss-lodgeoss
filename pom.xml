@@ -55,25 +55,14 @@
 
     <dependencies>
         <dependency>
-            <groupId>com.c4-soft.springaddons</groupId>
-            <artifactId>spring-addons-starter-oidc</artifactId>
-            <version>${springaddons.version}</version>
+            <groupId>com.nimbusds</groupId>
+            <artifactId>oauth2-oidc-sdk</artifactId>
+            <version>9.4</version>
         </dependency>
         <dependency>
-            <groupId>com.c4-soft.springaddons</groupId>
-            <artifactId>spring-addons-starter-oidc-test</artifactId>
-            <version>${springaddons.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.keycloak</groupId>
-            <artifactId>keycloak-spring-boot-starter</artifactId>
-            <version>14.0.0</version>
-        </dependency>
-        <dependency>
-            <groupId>org.keycloak</groupId>
-            <artifactId>keycloak-spring-security-adapter</artifactId>
-            <version>20.0.3</version>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-oauth2-jose</artifactId>
+            <version>5.5.0</version>
         </dependency>
         <dependency>
             <groupId>com.openlink.virtuoso</groupId>

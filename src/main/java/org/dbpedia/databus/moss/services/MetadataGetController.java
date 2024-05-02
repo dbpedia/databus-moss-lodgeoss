@@ -12,9 +12,6 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.keycloak.KeycloakPrincipal;
-import org.keycloak.KeycloakSecurityContext;
-import org.keycloak.representations.AccessToken;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -65,13 +62,5 @@ public class MetadataGetController {
         return ResponseEntity.ok("Access granted to public endpoint.");
     }
 
-    @GetMapping("/userinfo")
-    public ResponseEntity<String> userInfo(Principal principal) {
-        KeycloakPrincipal<KeycloakSecurityContext> keycloakPrincipal = (KeycloakPrincipal<KeycloakSecurityContext>) principal;
-        AccessToken accessToken = keycloakPrincipal.getKeycloakSecurityContext().getToken();
-        String username = accessToken.getPreferredUsername();
-        String email = accessToken.getEmail();
-        // … other user information …
-        return ResponseEntity.ok("User information: " + username + ", " + email);
-    }
+   
 }
