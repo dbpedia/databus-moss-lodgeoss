@@ -182,15 +182,15 @@ public class MetadataService {
         JsonLDWriter writer = new JsonLDWriter(RDFFormat.JSONLD_COMPACT_PRETTY);
         writer.write(outputStream, datasetGraph, null, null, ctx);
 
-        /**
-         * System.out.println("#########################################");
-         * RDFDataMgr.write(System.out, annotationModel,
-         * RDFFormat.JSONLD_COMPACT_PRETTY);
-         * System.out.println("+++++++++++++++++++++++++++++++++++++++++");
-         * RDFDataMgr.write(System.out, annotationModel, Lang.TURTLE);
-         * System.out.println("#########################################");
-         * 
-         */
+
+        /** 
+        System.out.println("#########################################");
+        RDFDataMgr.write(System.out, annotationModel, RDFFormat.JSONLD_COMPACT_PRETTY);
+        System.out.println("+++++++++++++++++++++++++++++++++++++++++");
+        RDFDataMgr.write(System.out, annotationModel, Lang.TURTLE);
+        System.out.println("#########################################");
+        */
+
         String jsonString = outputStream.toString("UTF-8");
         System.out.println("jsonjsonjsonjsonjsonjsonjsonjsonjsonjson");
         System.out.println(jsonString);
