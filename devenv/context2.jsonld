@@ -91,10 +91,6 @@
             "@id": "csvw:tableSchema",
             "@type": "@id"
         },
-        "name": {
-            "@id": "rdfs:label",
-            "@type": "xsd:string"
-        },
         "type": {
             "@id": "csvw:datatype",
             "@type": "xsd:string"
