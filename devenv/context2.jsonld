@@ -17,6 +17,13 @@
             "@id": "dct:title",
             "@type": "xsd:string"
         },
+        "extends" : {
+            "@id": "moss:extends",
+            "@type": "@id"
+        },
+        "isExtendedBy" : {
+            "@reverse" : "extends"
+        },
         "description": {
             "@id": "dct:description",
             "@type": "xsd:string"
