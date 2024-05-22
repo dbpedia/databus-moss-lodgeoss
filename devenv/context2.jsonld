@@ -29,6 +29,7 @@
             "@id": "dc:subject",
             "@type": "@id"
         },
+        "isSubjectOf": { "@reverse": "subject" },
         "keywords": {
             "@id": "dc:subject",
             "@type": "xsd:string"
