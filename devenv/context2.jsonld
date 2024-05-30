@@ -72,8 +72,8 @@
         "version": {
             "@id": "moss:version"
         },
-        "name": {
-            "@id": "moss:name"
+        "layerName": {
+            "@id": "moss:layerName"
         },
         "DatabusMetadataLayer": {
           "@id": "moss:DatabusMetadataLayer"
