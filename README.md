@@ -1,6 +1,6 @@
 # Databus Metadata Overlay Search System LODGEOSS
 
-This is an old version of MOSS a result of the LODGEOSS project. You can find the new version of MOSS [here](https://github.com/dbpedia/databus-moss).
+> This is an old version of MOSS a result of the LODGEOSS project. You can find the new version of MOSS [here](https://github.com/dbpedia/databus-moss).
 
 demo at [moss.tools.dbpedia.org](https://moss.tools.dbpedia.org/)
 
